@@ -1,0 +1,17 @@
+7
+78
+50
+Union
+TaxiRank
+GreatCourt
+Theatre
+82D
+8
+78 50 100
+78 Union 30
+50 TaxiRank 75
+Union GreatCourt 50
+Union Theatre 60
+Theatre GreatCourt 30
+TaxiRank 82D 50
+GreatCourt 82D 70
