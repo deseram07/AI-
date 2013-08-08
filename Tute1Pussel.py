@@ -22,6 +22,7 @@ def actionspace(Coordinates):
         possible.remove((0,1))
 #    return possible
     print possible
+    
         
 def sucessor(current_state, actionspace):
     '''
