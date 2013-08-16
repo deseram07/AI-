@@ -28,7 +28,7 @@ def remove_decimal(list):
         
     return list
 
-#calculates the distance between two points
+# calculates the distance between two points
 def boom_length(start, end):
     boom = math.sqrt((start.x-end.x)**2+(start.y-end.y)**2)
     return boom
