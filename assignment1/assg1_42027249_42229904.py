@@ -1,6 +1,7 @@
 import sys
 import numpy as np
 import math
+<<<<<<< HEAD
 
 
 # working on grid (1000 x 1000) where obstacles are represented by 1s and clear is represented by 0s
@@ -42,6 +43,9 @@ def angles(start, middle, end):
     angle = math.degrees(math.acos((a**2+b**2-c**2)/(2*a*b)))
     print angle
 
+=======
+from utility import *
+>>>>>>> 6af6c69fe4951acea933b67e01470cff0fbb3ae8
 
 def main(filename):
     global minArea
