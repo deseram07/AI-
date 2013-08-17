@@ -2,6 +2,7 @@ import sys
 import numpy as np
 import math
 from utility import *
+import heapq
 
 # Working on grid (1000 x 1000) where obstacles are represented by 1s and clear is represented by 0s
 
@@ -18,15 +19,11 @@ def main(filename):
     minArea = np.pi * rmin * rmin
     for i in range(number):
         # Create and initialise ASVs
-        asv.append(ASV(i, start[i * 2], start[i * 2 + 1]))
+        asv.append(ASV(i, start[i * 2], start[i * 2 + 1], finish[i * 2], finish[i * 2 + 1]))
         if i is not 0:
-            asv[i].previous = asv[i - 1]
             asv[i].boom = start[-(number - i)]
-            print asv[i].boom
             boom_length(asv[i], asv[i].previous)
-        
-    angles(asv[0], asv[1], asv[2])
-    print_asv(asv)
+
     # Creating obstacles in grid
     for j in range(int(lines[3].strip('\n'))):
         obstacle = remove_decimal(lines[j + 4].strip('\n').split(' '))
