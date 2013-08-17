@@ -6,8 +6,28 @@ import heapq
 
 # Working on grid (1000 x 1000) where obstacles are represented by 1s and clear is represented by 0s
 
+def init_grid(AStar, grid):
+    for x in range(AStar.width):
+        for y in range(AStar.height):
+            if grid[x][y] == 1:
+                reachable = False
+            else:
+                reachable = True
+            AStar.cells.append(CELL(x,y,reachable))
+            
+# Astar search processing
+def process(AStar, asv):
+    start = get_cell(AStar, asv[0].x, asv[0].y)
+    start.h = get_h(asv[0])
+    start.f = start.g + start.f
+    heapq.heappush(AStar.op, (start.f, start))
+    while len(AStar.op):
+        f, cell = heapq.heappop(AStar.op)
+        
+
 def main(filename):
     global minArea
+    AStar = Astar()
     grid = np.zeros(shape=(1000, 1000))
     file = open(filename, 'r')
     lines = file.readlines()
@@ -22,7 +42,7 @@ def main(filename):
         asv.append(ASV(i, start[i * 2], start[i * 2 + 1], finish[i * 2], finish[i * 2 + 1]))
         if i is not 0:
             asv[i].boom = start[-(number - i)]
-            boom_length(asv[i], asv[i].previous)
+            boom_length(asv[i], asv[i-1])
 
     # Creating obstacles in grid
     for j in range(int(lines[3].strip('\n'))):
@@ -33,7 +53,9 @@ def main(filename):
             for m in range(obstacle[0], obstacle[2]):
                 grid[m][n] = 1
     
-
+    init_grid(AStar, grid)
+    process(AStar, asv)
+    
         
 
 

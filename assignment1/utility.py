@@ -9,16 +9,18 @@ class ASV:
         self.num = num
         self.x = x
         self.y = y
+        self.startx = x
+        self.starty = y
         self.destx = destx
         self.desty = desty
         self.boom = 0
 
 # cell class
 class CELL:
-    def __init__(self, x, y, num, reachable):
+    def __init__(self, x, y, reachable):
         self.x = x
         self.y = y
-        self.visited = num
+        self.visited = None
         self.reachable = reachable
         self.parent = None
         self.g = 0
@@ -65,4 +67,5 @@ def get_h(asv):
     dist = abs(asv.x - asv.destx) + abs(asv.y - asv.desty)
     return dist
 
-
+def get_cell(AStar, x, y):
+    return AStar.cells[x*AStar.height+y]
