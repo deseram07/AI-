@@ -1,0 +1,2 @@
+http://www.laurentluce.com/posts/solving-mazes-using-python-simple-recursivity-and-a-search/
+https://github.com/rogerdudler/eclipse-ui-themes
