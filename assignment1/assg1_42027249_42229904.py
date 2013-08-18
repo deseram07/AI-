@@ -20,6 +20,7 @@ def display_path():
     cell = AStar.end
     while cell.parent is not AStar.start:
         cell = cell.parent
+        print '%d, %d' % (cell.x, cell.y)
         
 # returns the estimated cost to destination from current position
 def get_h(cell):
@@ -38,19 +39,19 @@ def update_cell(adj, cell):
 def get_adj(cell):
     cells = []
     if cell.x < AStar.width - 1:
-        cells.append(Cell(cell.x + 1, cell.y))
+        cells.append(get_cell(cell.x + 1, cell.y))
     if cell.y > 0:
-        cells.append(Cell(cell.x, cell.y - 1))
+        cells.append(get_cell(cell.x, cell.y - 1))
     if cell.x > 0:
-        cells.append(Cell(cell.x - 1, cell.y))
+        cells.append(get_cell(cell.x - 1, cell.y))
     if cell.y < AStar.height - 1:
-        cells.append(Cell(cell.x, cell.y + 1))
+        cells.append(get_cell(cell.x, cell.y + 1))
     return cells
 
 # Astar search processing
 def process(asv):
-    AStar.end = get_cell(AStar, asv[0].destx, asv[0].desty)
-    AStar.start = get_cell(AStar, asv[0].x, asv[0].y)
+    AStar.end = get_cell(asv[0].destx, asv[0].desty)
+    AStar.start = get_cell(asv[0].x, asv[0].y)
     AStar.start.h = get_h(asv[0])
     AStar.start.f = AStar.start.g + AStar.start.f
     heapq.heappush(AStar.op, (AStar.start.f, AStar.start))
@@ -58,7 +59,7 @@ def process(asv):
         f, cell = heapq.heappop(AStar.op)
         AStar.cl.add(cell)
         if cell is AStar.end:
-            display_path(cell)
+            display_path()
             break
         adj_cells = get_adj(cell)
         for c in adj_cells:
@@ -72,12 +73,12 @@ def process(asv):
             
         
 
-def main(filename):
+def main(inputfile, outputfile):
     global minArea
     global AStar
     AStar = Astar()
     grid = np.zeros(shape=(1000, 1000))
-    file = open(filename, 'r')
+    file = open(inputfile, 'r')
     lines = file.readlines()
     start = remove_decimal(lines[1].strip('\n').split(' '))
     finish = remove_decimal(lines[2].strip('\n').split(' '))
@@ -99,17 +100,18 @@ def main(filename):
             # Iterate through row of position of the obstacle
             for m in range(obstacle[0], obstacle[2]):
                 grid[m][n] = 1
+    print grid
     
-    init_grid(AStar, grid)
-    process(AStar, asv)
+    init_grid(grid)
+    process(asv)
     
         
 
 
 if __name__ == '__main__':
-    if(len(sys.argv) is not 2):
-        print "Usage: python assg1_42027249_42229904.py desired_input_file"
+    if(len(sys.argv) is not 3):
+        print "Usage: python assg1_42027249_42229904.py desired_input_file desired_output_file"
         sys.exit(1)
     else:
-        main(sys.argv[1])
+        main(sys.argv[1], sys.argv[2])
     
