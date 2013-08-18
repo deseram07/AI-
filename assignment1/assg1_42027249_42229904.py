@@ -92,15 +92,13 @@ def main(inputfile, outputfile):
         if i is not 0:
             asv[i].boom = start[-(number - i)]
 
+    # Extracts how much the obstacles are required to be expanded by 
+    expand = obstacle_transform(asv)
+
     # Creating obstacles in grid
     for j in range(int(lines[3].strip('\n'))):
         obstacle = remove_decimal(lines[j + 4].strip('\n').split(' '))
-        # Iterate through column of position of the obstacle
-        for n in range(obstacle[1], obstacle[3]):
-            # Iterate through row of position of the obstacle
-            for m in range(obstacle[0], obstacle[2]):
-                grid[m][n] = 1
-    print grid
+        grid[(obstacle[1] + expand[0]):(obstacle[5] + expand[1]+1),(obstacle[0] + expand[2]):(obstacle[4] + expand[3]+1)] = 1
     
     init_grid(grid)
     process(asv)

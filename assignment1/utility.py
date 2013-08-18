@@ -44,36 +44,36 @@ class Astar:
 def obstacle_transform(asv):
     index = 0
     ref_point = [asv[0].x, asv[0].y]
-    obstacle_shift = [asv[0].y,asv[0].y,asv[0].x,asv[0].x]  #[up,down,left,right]
+    obstacle_shift = [asv[0].y,asv[0].y,asv[0].x,asv[0].x]  #[-y, +y, -x, +x]
     
     for coordinate in asv:
         X = coordinate.x
         Y = coordinate.y
         
-        print X,Y
-# expand obstacle to right
-        if X > ref_point[0] and X > obstacle_shift[3]:
-            obstacle_shift[3] = X
-
-# expand obstacle to left
-        elif X < ref_point[0] and X < obstacle_shift[2]:
+#        print X,Y
+# expand obstacle to +x
+        if X > ref_point[0] and X > obstacle_shift[2]:
             obstacle_shift[2] = X
 
+# expand obstacle to left
+        elif X < ref_point[0] and X < obstacle_shift[3]:
+            obstacle_shift[3] = X
+
 # expand obstacle to up
-        if Y > ref_point[1] and Y > obstacle_shift[0]:
-            obstacle_shift[0] = Y
+        if Y < ref_point[1] and Y < obstacle_shift[1]:
+            obstacle_shift[1] = Y
 
 # expand obstacle to down
-        elif Y < ref_point[1] and Y < obstacle_shift[1]:
-            obstacle_shift[1] = Y
+        elif Y > ref_point[1] and Y > obstacle_shift[0]:
+            obstacle_shift[0] = Y
             
 # Calculate the required vectors additions that will be applied on
 # obstacle coordinates
     for p in obstacle_shift:
         if index > 1:
-            obstacle_shift[index] -= ref_point[0]
+            obstacle_shift[index] = ref_point[0] - obstacle_shift[index]
         else:
-            obstacle_shift[index] -= ref_point[1]
+            obstacle_shift[index] = ref_point[1] - obstacle_shift[index]
         index += 1
     return obstacle_shift
             
