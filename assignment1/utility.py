@@ -16,7 +16,7 @@ class ASV:
         self.boom = 0
 
 # cell class
-class CELL:
+class Cell:
     def __init__(self, x, y, reachable):
         self.x = x
         self.y = y
@@ -36,6 +36,8 @@ class Astar:
         self.cells = []
         self.width = 1000
         self.height = 1000
+        self.start = None
+        self.end = None
 
 # Returns the point reference of the asv and the transformed coordinates of
 # the obstacles
@@ -49,7 +51,6 @@ def obstacle_transform(asv):
         Y = coordinate.y
         
         print X,Y
-        
 # expand obstacle to right
         if X > ref_point[0] and X > obstacle_shift[3]:
             obstacle_shift[3] = X
@@ -102,10 +103,4 @@ def angles(start, middle, end):
     angle = math.degrees(math.acos((a ** 2 + b ** 2 - c ** 2) / (2 * a * b)))
     return angle
 
-# returns the estimated cost to destination from current position
-def get_h(asv):
-    dist = abs(asv.x - asv.destx) + abs(asv.y - asv.desty)
-    return dist
-
-def get_cell(AStar, x, y):
-    return AStar.cells[x*AStar.height+y]
+    
