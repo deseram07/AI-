@@ -2,6 +2,7 @@ import sys
 import numpy as np
 import math
 import heapq
+import random
 
 # creating an ASV
 class ASV:
@@ -119,4 +120,24 @@ def intersect(A, B, C, D):
 def ccw(A, B, C):
     return (C.y - A.y) * (B.x - A.x) > (B.y - A.y) * (C.x - A.x)
 
+# Selects random lengths for asv booms and random angles between asvs
+# and returns if the area is greater than 
+def random_length_angle(asv):
+    n = len(asv)    #number of asv's
+    r_min = 7*(n-1)
+    print np.pi
+    min_area = np.pi * r_min**2 # minimum allowed area
+    angles = constrained_sum_sample_pos(n, (n-1)*180)
+    lengths = []
+    for i in range(len(asv)):
+        lengths.append(random.randrange(50,75))
+    print angles, lengths
+    
+def constrained_sum_sample_pos(n, total):
+    """Return a randomly chosen list of n positive integers summing to total.
+    Each such list is equally likely to occur."""
 
+    dividers = sorted(random.sample(xrange(1, total), n - 1))
+    return [a - b for a, b in zip(dividers + [total], [0] + dividers)]
+    
+    

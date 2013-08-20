@@ -114,11 +114,12 @@ def main(inputfile, outputfile):
         grid[final_obstacle[0]:final_obstacle[1], final_obstacle[2]:final_obstacle[3]] = 1
 
 
-    init_grid(grid)
-    process(asv)
-    display_path(output)
-    output.close()
-    file.close()
+#    init_grid(grid)
+#    process(asv)
+#    display_path(output)
+#    output.close()
+#    file.close()
+    random_length_angle(asv)
 
 if __name__ == '__main__':
     if(len(sys.argv) is not 3):
