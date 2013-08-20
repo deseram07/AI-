@@ -1,9 +1,9 @@
 import sys
-import numpy as np
-import math
+#import numpy as np
+#import math
 from utility import *
 import heapq
-import cv2
+#import cv2
 
 # Working on grid (1000 x 1000) where obstacles are represented by 1s and clear is represented by 0s
 
@@ -119,9 +119,6 @@ def main(inputfile, outputfile):
     display_path(output)
     output.close()
     file.close()
-    
-        
-
 
 if __name__ == '__main__':
     if(len(sys.argv) is not 3):
