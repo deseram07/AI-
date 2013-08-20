@@ -21,7 +21,7 @@ def display_path(outputfile):
     cell = AStar.end
     while cell.parent is not AStar.start:
         cell = cell.parent
-        outputfile.write('%.3f, %.3f\n' % (float(cell.x)/1000, float(cell.y)/1000.0))
+        outputfile.write('%.3f, %.3f\n' % (float(cell.x) / 1000, float(cell.y) / 1000.0))
 #        print '%d, %d' % (cell.x, cell.y)
         
 # returns the estimated cost to destination from current position

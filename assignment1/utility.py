@@ -44,7 +44,7 @@ class Astar:
 def obstacle_transform(asv):
     index = 0
     ref_point = [asv[0].x, asv[0].y]
-    obstacle_shift = [asv[0].y,asv[0].y,asv[0].x,asv[0].x]  #[-y, +y, -x, +x]
+    obstacle_shift = [asv[0].y, asv[0].y, asv[0].x, asv[0].x]  # [-y, +y, -x, +x]
     
     for coordinate in asv:
         X = coordinate.x
@@ -103,4 +103,21 @@ def angles(start, middle, end):
     angle = math.degrees(math.acos((a ** 2 + b ** 2 - c ** 2) / (2 * a * b)))
     return angle
 
-    
+# calculate area of asv shape
+def area(asv):
+    add = 0
+    number = len(asv)
+    for i in range(number - 1):
+        add = add + (asv[i].x * asv[i + 1].y - asv[i].y * asv[i + 1].x)
+        
+    add = add + (asv[number].x * asv[0].y - asv[number].y * asv[0].x)
+    return abs(add / 2)
+
+def ccw(A, B, C):
+    return (C.y - A.y) * (B.x - A.x) > (B.y - A.y) * (C.x - A.x)
+
+# Return true if line segments AB and CD intersect
+def intersect(A, B, C, D):
+    return ccw(A, C, D) != ccw(B, C, D) and ccw(A, B, C) != ccw(A, B, D)
+
+
