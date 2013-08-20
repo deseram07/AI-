@@ -1,7 +1,7 @@
 import sys
 #import numpy as np
 #import math
-from utility import *
+from utilityedit import *
 import heapq
 #import cv2
 
@@ -77,6 +77,8 @@ def process(asv):
 def main(inputfile, outputfile):
     global minArea
     global AStar
+    global obstacles
+    obstacles = []
     AStar = Astar()
     grid = np.zeros(shape=(1000, 1000))
     file = open(inputfile, 'r')
@@ -104,6 +106,7 @@ def main(inputfile, outputfile):
     # Creating obstacles in grid
     for j in range(int(lines[3].strip('\n'))):
         obstacle = remove_decimal(lines[j + 4].strip('\n').split(' '))
+        obstacles.append(obstacle)
         final_obstacle = [obstacle[1] + expand[0], obstacle[5] + expand[1] + 1, obstacle[0] + expand[2], obstacle[4] + expand[3] + 1]
         index = 0
         while index < len(final_obstacle):
@@ -112,7 +115,6 @@ def main(inputfile, outputfile):
             index += 1 
         
         grid[final_obstacle[0]:final_obstacle[1], final_obstacle[2]:final_obstacle[3]] = 1
-
 
     init_grid(grid)
     process(asv)
