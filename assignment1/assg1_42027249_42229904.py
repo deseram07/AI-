@@ -23,7 +23,7 @@ def display_path(outputfile):
         cell = cell.parent
         outputfile.write('%.3f, %.3f\n' % (float(cell.x) / 1000, float(cell.y) / 1000.0))
 #        print '%d, %d' % (cell.x, cell.y)
-        
+         
 # returns the estimated cost to destination from current position
 def get_h(cell):
     dist = abs(cell.x - AStar.end.x) + abs(cell.y - AStar.end.y)

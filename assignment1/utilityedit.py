@@ -27,6 +27,12 @@ class Cell:
         self.h = 0
         self.f = 0
         
+# point class
+class Point:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        
 # class for A* search
 class Astar:
     def __init__(self):
@@ -104,8 +110,20 @@ def angles(start, middle, end):
     return angle
 
 # Return true if line segments AB and CD intersect
-def intersect(A,B,C,D):
-    return ccw(A,C,D) != ccw(B,C,D) and ccw(A,B,C) != ccw(A,B,D)
-def ccw(A,B,C):
-    return (C.y-A.y) * (B.x-A.x) > (B.y-A.y) * (C.x-A.x)
+def intersect(A, B, C, D):
+    return ccw(A, C, D) != ccw(B, C, D) and ccw(A, B, C) != ccw(A, B, D)
 
+def ccw(A, B, C):
+    return (C.y - A.y) * (B.x - A.x) > (B.y - A.y) * (C.x - A.x)
+
+# Check for collisions returns False for a collision
+def check_collision(obstacles, asv):
+    pairs = [[0, 1, 2, 3], [2, 3, 4, 5], [4, 5, 6, 7], [6, 7, 0, 1]]
+    for i in range(len(asv) - 1):
+        for j in range(len(obstacles)):
+            for k in range(len(pairs)):
+                test = intersect(Point(asv[i].x, asv[i].y), Point(asv[i + 1].x, asv[i + 1].y), Point((obstacles[j])[(pairs[k])[0]], (obstacles[j])[(pairs[k])[1]]), Point((obstacles[j])[(pairs[k])[2]], (obstacles[j])[(pairs[k])[3]]))
+                if test == True:
+                    return False
+                
+    return True
