@@ -23,7 +23,7 @@ def display_path(outputfile):
         cell = cell.parent
         outputfile.write('%.3f, %.3f\n' % (float(cell.x) / 1000, float(cell.y) / 1000.0))
 #        print '%d, %d' % (cell.x, cell.y)
-         
+        
 # returns the estimated cost to destination from current position
 def get_h(cell):
     dist = abs(cell.x - AStar.end.x) + abs(cell.y - AStar.end.y)
@@ -77,6 +77,8 @@ def process(asv):
 def main(inputfile, outputfile):
     global minArea
     global AStar
+    global obstacles
+    obstacles = []
     AStar = Astar()
     grid = np.zeros(shape=(1000, 1000))
     file = open(inputfile, 'r')
@@ -104,6 +106,7 @@ def main(inputfile, outputfile):
     # Creating obstacles in grid
     for j in range(int(lines[3].strip('\n'))):
         obstacle = remove_decimal(lines[j + 4].strip('\n').split(' '))
+        obstacles.append(obstacle)
         final_obstacle = [obstacle[1] + expand[0], obstacle[5] + expand[1] + 1, obstacle[0] + expand[2], obstacle[4] + expand[3] + 1]
         index = 0
         while index < len(final_obstacle):
@@ -113,13 +116,11 @@ def main(inputfile, outputfile):
         
         grid[final_obstacle[0]:final_obstacle[1], final_obstacle[2]:final_obstacle[3]] = 1
 
-
-#    init_grid(grid)
-#    process(asv)
-#    display_path(output)
-#    output.close()
-#    file.close()
-    random_length_angle(asv)
+    init_grid(grid)
+    process(asv)
+    display_path(output)
+    output.close()
+    file.close()
 
 if __name__ == '__main__':
     if(len(sys.argv) is not 3):
@@ -128,3 +129,4 @@ if __name__ == '__main__':
     else:
         main(sys.argv[1], sys.argv[2])
     
+
