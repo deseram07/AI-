@@ -15,13 +15,15 @@ class ASV:
         self.desty = desty
         self.boom = 0
 
-# cell class
-class Cell:
-    def __init__(self, x, y, reachable):
+# sample class
+class Sample:
+    def __init__(self, coordinates, cx, cy, x, y, angle):
+        self.coords = coordinates
+        self.cx = cx
+        self.cy = cy
         self.x = x
         self.y = y
-        self.visited = None
-        self.reachable = reachable
+        self.angle = angle
         self.parent = None
         self.g = 0
         self.h = 0
@@ -39,9 +41,9 @@ class Astar:
         self.op = []
         heapq.heapify(self.op)
         self.cl = set()
-        self.cells = []
+        self.samples = []
         self.width = 1000
-        self.height = 1000
+        self.grid = 50
         self.start = None
         self.end = None
 
@@ -93,7 +95,6 @@ def print_asv(asv):
 def remove_decimal(list):
     for i in range(len(list)):
         list[i] = int(float(list[i]) * 1000)
-        
     return list
 
 # calculates the distance between two points
@@ -116,7 +117,19 @@ def intersect(A, B, C, D):
 def ccw(A, B, C):
     return (C.y - A.y) * (B.x - A.x) > (B.y - A.y) * (C.x - A.x)
 
-# Check for collisions returns False for a collision
+def centroid_angle(coords):
+    num = len(coords) / 2
+    sumx = 0
+    sumy = 0
+    for i in range(num):
+        sumx = sumx + coords[i]
+        sumy = sumy + coords[i + 1]
+    cx = sumx / num
+    cy = sumy / num
+    angle = angles(Point(coords[0] + 1, coords[1]), Point(coords[0], coords[1]), Point(cx, cy))
+    return cx, cy, angle
+    
+# Check for collisions returns True for a collision
 def check_collision(obstacles, asv):
     pairs = [[0, 1, 2, 3], [2, 3, 4, 5], [4, 5, 6, 7], [6, 7, 0, 1]]
     for i in range(len(asv) - 1):
@@ -124,6 +137,5 @@ def check_collision(obstacles, asv):
             for k in range(len(pairs)):
                 test = intersect(Point(asv[i].x, asv[i].y), Point(asv[i + 1].x, asv[i + 1].y), Point((obstacles[j])[(pairs[k])[0]], (obstacles[j])[(pairs[k])[1]]), Point((obstacles[j])[(pairs[k])[2]], (obstacles[j])[(pairs[k])[3]]))
                 if test == True:
-                    return False
-                
-    return True
+                    return True
+    return False
