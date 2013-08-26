@@ -123,15 +123,29 @@ def ccw(A, B, C):
 # Selects random lengths for asv booms and random angles between asvs
 # and returns if the area is greater than 
 def random_length_angle(asv):
+    angles = []
+    angle_sample = [0.0]
+    lengths = []
+    
     n = len(asv)    #number of asv's
     r_min = 7*(n-1)
-    print np.pi
     min_area = np.pi * r_min**2 # minimum allowed area
-    angles = constrained_sum_sample_pos(n, (n-1)*180)
-    lengths = []
+    
+#    obtaining random lengths for booms
     for i in range(len(asv)):
         lengths.append(random.randrange(50,75))
-    print angles, lengths
+        
+#    obtaining random angles between booms
+    for i in range(n-1):
+        angle_sample.append(random.random())
+    angle_sample.append(1.0)
+    angle_sample.sort()
+    for i in range(n):
+        angles.append(2*np.pi - (angles[:i] + ((angle_sample[i+1] - angle_sample[i]) * 2*np.pi)))
+    for 
+    
+    
+    
     
 def constrained_sum_sample_pos(n, total):
     """Return a randomly chosen list of n positive integers summing to total.
