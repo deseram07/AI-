@@ -95,7 +95,8 @@ def main(inputfile, outputfile):
         asv.append(ASV(i, start[i * 2], start[i * 2 + 1], finish[i * 2], finish[i * 2 + 1]))
         if i is not 0:
             asv[i].boom = start[-(number - i)]
-
+    asv[0].direction = ccw(asv[0], asv[1], asv[2])
+    print asv[0].direction
     # Extracts how much the obstacles are required to be expanded by 
     expand = obstacle_transform(asv)
     
@@ -104,21 +105,21 @@ def main(inputfile, outputfile):
 #    cv2.waitKey()
 
     # Creating obstacles in grid
-    for j in range(int(lines[3].strip('\n'))):
-        obstacle = remove_decimal(lines[j + 4].strip('\n').split(' '))
-        obstacles.append(obstacle)
-        final_obstacle = [obstacle[1] + expand[0], obstacle[5] + expand[1] + 1, obstacle[0] + expand[2], obstacle[4] + expand[3] + 1]
-        index = 0
-        while index < len(final_obstacle):
-            if final_obstacle[index] < 0:
-                final_obstacle[index] = 0
-            index += 1 
-        
-        grid[final_obstacle[0]:final_obstacle[1], final_obstacle[2]:final_obstacle[3]] = 1
+#    for j in range(int(lines[3].strip('\n'))):
+#        obstacle = remove_decimal(lines[j + 4].strip('\n').split(' '))
+#        obstacles.append(obstacle)
+#        final_obstacle = [obstacle[1] + expand[0], obstacle[5] + expand[1] + 1, obstacle[0] + expand[2], obstacle[4] + expand[3] + 1]
+#        index = 0
+#        while index < len(final_obstacle):
+#            if final_obstacle[index] < 0:
+#                final_obstacle[index] = 0
+#            index += 1 
+#        
+#        grid[final_obstacle[0]:final_obstacle[1], final_obstacle[2]:final_obstacle[3]] = 1
 
-    init_grid(grid)
-    process(asv)
-    display_path(output)
+#    init_grid(grid)
+#    process(asv)
+#    display_path(output)
     output.close()
     file.close()
 

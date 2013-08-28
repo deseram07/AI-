@@ -15,6 +15,7 @@ class ASV:
         self.destx = destx
         self.desty = desty
         self.boom = 0
+        self.direction = None
 
 # cell class
 class Cell:
@@ -118,12 +119,13 @@ def area(asv):
 def intersect(A, B, C, D):
     return ccw(A, C, D) != ccw(B, C, D) and ccw(A, B, C) != ccw(A, B, D)
 def ccw(A, B, C):
-    return (C.y - A.y) * (B.x - A.x) > (B.y - A.y) * (C.x - A.x)
+    return (C.y - A.y) * (B.x - A.x) - (B.y - A.y) * (C.x - A.x)
 
 # Selects random lengths for asv booms and random angles between asvs
 # and returns if the area is greater than 
 def random_length_angle(asv):
     angles = []
+    pre_angles = []
     angle_sample = [0.0]
     lengths = []
     
@@ -132,7 +134,7 @@ def random_length_angle(asv):
     min_area = np.pi * r_min**2 # minimum allowed area
     
 #    obtaining random lengths for booms
-    for i in range(len(asv)):
+    for i in range(len(asv)-1):
         lengths.append(random.randrange(50,75))
         
 #    obtaining random angles between booms
@@ -140,9 +142,48 @@ def random_length_angle(asv):
         angle_sample.append(random.random())
     angle_sample.append(1.0)
     angle_sample.sort()
-    for i in range(n):
-        angles.append(2*np.pi - (angles[:i] + ((angle_sample[i+1] - angle_sample[i]) * 2*np.pi)))
-    for 
+    for i in angle_sample:pre_angles.append(i*2.0*np.pi)
+    if asv[0].direction:
+#        if rotating clockwise
+        for i in range(len(pre_angles)):
+            angle = pre_angles[i]
+            for j in pre_angles[:i]:
+                angle += j
+            angles.append(2.0*np.pi - angle)
+    else:
+#        if rotating anticlockwise
+        for i in range(len(pre_angles)):
+            angle = pre_angles[i]
+            for j in pre_angles[:i]:
+                angle += j
+            angles.append(angle)
+            
+    return lengths, angles
+
+def generate_coordinates(lengths, angles, asv):
+    init_coord = [0,0]
+    coordinate = []
+#    placing the point in random location, this ensures that point lies on gird
+    orig = [random.randrange(1000),random.randrange(1000)]
+
+#    obtain random angle of rotation from x axis, this depends on direction of rotation
+    if asv[0].direction:
+        rotate = random.random() * np.pi * 2.0 
+    else:
+        rotate = 2*np.pi - (random.random() * np.pi * 2.0)
+    
+#    first find the points with initial boom on x axis with 0 degree rotation
+    coordinate.append(init_coord)
+    coordinate.append([init_coord[0] + lengths.pop()])
+    for i in range(len(lengths)):
+        last_point = coordinate[-1]
+        [x,y] = last_point
+        angle = angles.pop()
+        length = lengths.pop()
+        x = x + (length * np.cos(angle))
+        y = y + (length * np.sin(angle))
+        coordinate.append([x,y])
+    print coordinate
     
     
     
