@@ -158,7 +158,7 @@ def random_length_angle(asv):
                 angle += j
             angles.append(angle)
             
-    return lengths, angles
+    return lengths, pre_angles
 
 def generate_coordinates(lengths, angles, asv):
     init_coord = [0,0]
