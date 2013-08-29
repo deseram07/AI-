@@ -1,9 +1,9 @@
 import sys
-#import numpy as np
-#import math
+# import numpy as np
+# import math
 from utility import *
 import heapq
-#import cv2
+# import cv2
             
 # gets distance from one sample configuration to another
 def get_dist(sample, other):
@@ -121,7 +121,6 @@ def process(cSpace, start, dest):
 def main(inputfile, outputfile):
     global minArea
     global AStar
-    global obstacles
     global array
     obstacles = []
     cSpace = []
@@ -148,7 +147,19 @@ def main(inputfile, outputfile):
 #    cv2.cv.ShowImage('win1', src)
 #    cv2.waitKey()
 
+    # Creating obstacles in grid
+    for j in range(int(lines[3].strip('\n'))):
+        obstacle = remove_decimal(lines[j + 4].strip('\n').split(' '))
+        obstacles.append(obstacle)
+        final_obstacle = [obstacle[1], obstacle[5] + 1, obstacle[0], obstacle[4] + 1]
+        index = 0
+        while index < len(final_obstacle):
+            if final_obstacle[index] < 0:
+                final_obstacle[index] = 0
+            index += 1 
+        grid[final_obstacle[0]:final_obstacle[1], final_obstacle[2]:final_obstacle[3]] = 1
 
+    cSpace = obtain_random_points(asv, 5, grid, obstacles)
 #    process(cSpace)
 #    display_path(output)
     output.close()

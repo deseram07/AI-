@@ -30,6 +30,12 @@ class Cell:
         self.h = 0
         self.f = 0
         
+# point class
+class Point:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        
 # class for A* search
 class Astar:
     def __init__(self):
@@ -113,7 +119,7 @@ def area(asv):
     for i in range(number - 1):
         add = add + (asv[i].x * asv[i + 1].y - asv[i].y * asv[i + 1].x)
         
-    add = add + (asv[number-1].x * asv[0].y - asv[number-1].y * asv[0].x)
+    add = add + (asv[number - 1].x * asv[0].y - asv[number - 1].y * asv[0].x)
     return abs(add / 2)
 
 # Return true if line segments AB and CD intersect
@@ -131,19 +137,19 @@ def random_length_angle(asv):
     angle_sample = [0.0]
     lengths = []
     
-    n = len(asv)    #number of asv's
+    n = len(asv)  # number of asv's
 #    obtaining random lengths for booms
-    for i in range(len(asv)-1):
-        lengths.append(random.randrange(50,75))
+    for i in range(len(asv) - 1):
+        lengths.append(random.randrange(50, 75))
     
 #    obtaining random angles between booms
-    for i in range(n-1):
+    for i in range(n - 1):
         angle_sample.append(random.random())
     angle_sample.append(1.0)
     angle_sample.sort()
 
-    for i in range(len(angle_sample)-1):
-        pre_angles.append((angle_sample[i+1] - angle_sample[i])*2.0*np.pi)
+    for i in range(len(angle_sample) - 1):
+        pre_angles.append((angle_sample[i + 1] - angle_sample[i]) * 2.0 * np.pi)
    
     if asv[0].direction < 0:
 #        if rotating clockwise
@@ -163,61 +169,80 @@ def random_length_angle(asv):
             angles.append(angle)
     return lengths, angles
 
-def generate_coordinates(lengths, angles, asv):
-    init_coord = [0,0]
+def generate_coordinates(lengths, angles, asv, grid, obstacles):
+    init_coord = [0, 0]
     coordinate = []
 #    placing the point in random location, this ensures that point lies on gird
-    shift = [(random.random())*1000.0,(random.random())*1000.0]
+    shift = [(random.random()) * 1000.0, (random.random()) * 1000.0]
     rotate = random.random() * np.pi * 2.0
     
 #    first find the points with initial boom on x axis with 0 degree rotation
     coordinate.append(init_coord)
-    coordinate.append([init_coord[0]+ lengths.pop(0),init_coord[1]])
+    coordinate.append([init_coord[0] + lengths.pop(0), init_coord[1]])
     for i in range(len(lengths)):
-        [x,y] = coordinate[-1]
+        [x, y] = coordinate[-1]
         angle = angles.pop(0)
         length = lengths.pop(0)
         x = x + (length * np.cos(angle))
         y = y + (length * np.sin(angle))
-        coordinate.append([x,y])
+        coordinate.append([x, y])
     
-    if check(coordinate,asv):
-        shift = Shift(coordinate,shift)
+    if check1(coordinate, asv):
+        shift = Shift(coordinate, shift)
         coordinate = Rotate2D(shift, rotate)
-        return True
+        return check2(coordinate, asv, grid, obstacles)
+#         return True
     else:
         return False
     
+    
+def check2(coordinate, asv, grid, obstacles):
+    print('check2')
+    for coord, ASV in zip(coordinate, asv):
+        ASV.x = coord[0]
+        ASV.y = coord[1]
+    
+    # boom in obstacle (True for collision)
+    if check_collision(obstacles, asv, grid) == False:
+        for i in asv:
+            if 0 <= i.x <= 1000 and  0 <= i.y <= 1000:
+                # coord not in obstacle
+                if grid[i.y][i.x] == 0:
+                    pass
+            else:
+                return False
+        return True
+    return False
 
-def check(coordinate,asv):
-    for coord,ASV in zip(coordinate, asv):
+def check1(coordinate, asv):
+    print 'check1'
+    for coord, ASV in zip(coordinate, asv):
         ASV.x = coord[0]
         ASV.y = coord[1]
     A = area(asv)
     n = len(asv)
-    r_min = 7*(n-1)
-    min_area = np.pi * r_min**2 # minimum allowed area
+    r_min = 7 * (n - 1)
+    min_area = np.pi * r_min ** 2  # minimum allowed area
     
     """
     Area greater than min_area
     All points within (1000,1000) grid
     ASV combination not in obstacle
     """
-    for i in asv:
-        if 0 <= i.x <= 1000 and  0 <= i.y <= 1000:
-            pass
-        else:
+    # greater area
+    if A > min_area:
+        for i in range(len(asv) - 1):
+            if np.sign(ccw(asv[i - 1], asv[i], asv[i + 1])) != np.sign(asv[0].direction):
+                return False
+        if np.sign(ccw(asv[-2], asv[-1], asv[0])) != np.sign(asv[0].direction):
             return False
-    for i in range(len(asv)-1):
-        if np.sign(ccw(asv[i-1],asv[i],asv[i+1])) != np.sign(asv[0].direction):
-            return False
-    if np.sign(ccw(asv[-2],asv[-1],asv[0])) != np.sign(asv[0].direction):
-        return False 
-    return A>min_area
+        return True
+    
+    return False
 
 
 def Shift(pts, delta):
-    [dx,dy] = delta
+    [dx, dy] = delta
     for i in range(len(pts)):
         pts[i][0] += dx
         pts[i][1] += dy
@@ -229,10 +254,10 @@ def Rotate2D(pts, ang):
     by (thetha) degrees
     """
     pts = np.array(pts)
-    cnt = np.array([0,0])
-    return (np.dot(pts-cnt,np.array([[np.cos(ang),np.sin(ang)],[-np.sin(ang),np.cos(ang)]]))+cnt).tolist()
+    cnt = np.array([0, 0])
+    return (np.dot(pts - cnt, np.array([[np.cos(ang), np.sin(ang)], [-np.sin(ang), np.cos(ang)]])) + cnt).tolist()
     
-def obtain_random_points(asv, n = 5):
+def obtain_random_points(asv, n=5, grid=np.zeros(shape=(1000, 1000)), obstacles=[-1, -1, -1, -1]):
     points = []
     sample = []
     x = []
@@ -240,16 +265,16 @@ def obtain_random_points(asv, n = 5):
     count = 0
     while count < n:
         lengths, angles = random_length_angle(asv)
-        if generate_coordinates(lengths, angles, asv):
+        if generate_coordinates(lengths, angles, asv, grid, obstacles):
             for i in asv:
-                sample.append([int(i.x),int(i.y)])
+                sample.append([int(i.x), int(i.y)])
                 x.append(int(i.x))
                 y.append(int(i.y))
             points.append(sample)
             if debug:
-                py.plot(x,y, '-+')
+                py.plot(x, y, '-+')
                 py.show()
-                x= []
+                x = []
                 y = []
             sample = []
             count += 1
@@ -262,4 +287,12 @@ def constrained_sum_sample_pos(n, total):
     dividers = sorted(random.sample(xrange(1, total), n - 1))
     return [a - b for a, b in zip(dividers + [total], [0] + dividers)]
     
-    
+# Check for collisions returns True for a collision
+def check_collision(obstacles, asv, grid):
+    pairs = [[0, 1, 2, 3], [2, 3, 4, 5], [4, 5, 6, 7], [6, 7, 0, 1]]
+    for i in range(len(asv) - 1):
+        for j in range(len(obstacles)):
+            for k in range(len(pairs)):
+                if intersect(Point(asv[i].x, asv[i].y), Point(asv[i + 1].x, asv[i + 1].y), Point((obstacles[j])[(pairs[k])[0]], (obstacles[j])[(pairs[k])[1]]), Point((obstacles[j])[(pairs[k])[2]], (obstacles[j])[(pairs[k])[3]])):
+                    return True
+    return False
