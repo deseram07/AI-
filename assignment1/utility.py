@@ -203,7 +203,7 @@ def check2(coordinate, asv, grid, obstacles):
         ASV.y = coord[1]
     
     # boom in obstacle (True for collision)
-    if check_collision(obstacles, asv, grid) == False:
+    if check_collision(obstacles, asv) == False:
         for i in asv:
             if 0 <= i.x <= 1000 and  0 <= i.y <= 1000:
                 # coord not in obstacle
@@ -257,7 +257,7 @@ def Rotate2D(pts, ang):
     cnt = np.array([0, 0])
     return (np.dot(pts - cnt, np.array([[np.cos(ang), np.sin(ang)], [-np.sin(ang), np.cos(ang)]])) + cnt).tolist()
     
-def obtain_random_points(asv, n=5, grid=np.zeros(shape=(1000, 1000)), obstacles=[-1, -1, -1, -1]):
+def obtain_random_points(asv, n=5, obstacles=[-1, -1, -1, -1],grid=np.zeros(shape=(1000, 1000))):
     points = []
     sample = []
     x = []
@@ -288,7 +288,7 @@ def constrained_sum_sample_pos(n, total):
     return [a - b for a, b in zip(dividers + [total], [0] + dividers)]
     
 # Check for collisions returns True for a collision
-def check_collision(obstacles, asv, grid):
+def check_collision(obstacles, asv):
     pairs = [[0, 1, 2, 3], [2, 3, 4, 5], [4, 5, 6, 7], [6, 7, 0, 1]]
     for i in range(len(asv) - 1):
         for j in range(len(obstacles)):

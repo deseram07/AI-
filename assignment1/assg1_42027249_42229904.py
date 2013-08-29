@@ -159,7 +159,7 @@ def main(inputfile, outputfile):
             index += 1 
         grid[final_obstacle[0]:final_obstacle[1], final_obstacle[2]:final_obstacle[3]] = 1
 
-    cSpace = obtain_random_points(asv, 5, grid, obstacles)
+    cSpace = obtain_random_points(asv, 5, obstacles, grid )
 #    process(cSpace)
 #    display_path(output)
     output.close()
