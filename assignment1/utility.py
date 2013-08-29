@@ -3,7 +3,8 @@ import numpy as np
 import math
 import heapq
 import random
-
+import pylab as py
+debug = 0
 # creating an ASV
 class ASV:
     def __init__(self, num, x, y, destx, desty):
@@ -147,20 +148,19 @@ def random_length_angle(asv):
     if asv[0].direction < 0:
 #        if rotating clockwise
         i = 0
-        for i in range(len(pre_angles) - 1):
+        for i in range(len(pre_angles)):
             angle = pre_angles[i]
             for j in pre_angles[:i]:
                 angle += j
-            angles.append(-1 * angle)
+            angles.append(-angle)
     else:
 #        if rotating counterclockwise
         i = 0
-        for i in range(len(pre_angles) - 1):
+        for i in range(len(pre_angles)):
             angle = pre_angles[i]
             for j in pre_angles[:i]:
                 angle += j
             angles.append(angle)
-            
     return lengths, angles
 
 def generate_coordinates(lengths, angles, asv):
@@ -172,19 +172,21 @@ def generate_coordinates(lengths, angles, asv):
     
 #    first find the points with initial boom on x axis with 0 degree rotation
     coordinate.append(init_coord)
-
+    coordinate.append([init_coord[0]+ lengths.pop(0),init_coord[1]])
     for i in range(len(lengths)):
-        last_point = coordinate[-1]
-        [x,y] = last_point
+        [x,y] = coordinate[-1]
         angle = angles.pop(0)
         length = lengths.pop(0)
         x = x + (length * np.cos(angle))
         y = y + (length * np.sin(angle))
         coordinate.append([x,y])
-    shift = Shift(coordinate,shift)
     
-    coordinate = Rotate2D(shift, rotate)
-    return check(coordinate,asv)
+    if check(coordinate,asv):
+        shift = Shift(coordinate,shift)
+        coordinate = Rotate2D(shift, rotate)
+        return True
+    else:
+        return False
     
 
 def check(coordinate,asv):
@@ -206,7 +208,13 @@ def check(coordinate,asv):
             pass
         else:
             return False
+    for i in range(len(asv)-1):
+        if np.sign(ccw(asv[i-1],asv[i],asv[i+1])) != np.sign(asv[0].direction):
+            return False
+    if np.sign(ccw(asv[-2],asv[-1],asv[0])) != np.sign(asv[0].direction):
+        return False 
     return A>min_area
+
 
 def Shift(pts, delta):
     [dx,dy] = delta
@@ -215,12 +223,11 @@ def Shift(pts, delta):
         pts[i][1] += dy
     return pts
 
-def Rotate2D(pts, thetha):
+def Rotate2D(pts, ang):
     """
     Rotates a gives polygon about the origin in the counter clockwise direction 
     by (thetha) degrees
     """
-    ang = np.deg2rad(thetha)
     pts = np.array(pts)
     cnt = np.array([0,0])
     return (np.dot(pts-cnt,np.array([[np.cos(ang),np.sin(ang)],[-np.sin(ang),np.cos(ang)]]))+cnt).tolist()
@@ -228,13 +235,22 @@ def Rotate2D(pts, thetha):
 def obtain_random_points(asv, n = 5):
     points = []
     sample = []
+    x = []
+    y = []
     count = 0
     while count < n:
         lengths, angles = random_length_angle(asv)
         if generate_coordinates(lengths, angles, asv):
             for i in asv:
-                sample.append([i.x,i.y])
+                sample.append([int(i.x),int(i.y)])
+                x.append(int(i.x))
+                y.append(int(i.y))
             points.append(sample)
+            if debug:
+                py.plot(x,y, '-+')
+                py.show()
+                x= []
+                y = []
             sample = []
             count += 1
     return points
