@@ -3,8 +3,9 @@ import numpy as np
 import math
 import heapq
 import random
+import time
 import pylab as py
-debug = 0
+debug = 1
 # creating an ASV
 class ASV:
     def __init__(self, num, x, y, destx, desty):
@@ -124,7 +125,7 @@ def area(asv):
 
 # Return true if line segments AB and CD intersect
 def intersect(A, B, C, D):
-    return ccw(A, C, D) != ccw(B, C, D) and ccw(A, B, C) != ccw(A, B, D)
+    return np.sign(ccw(A, C, D)) != np.sign(ccw(B, C, D)) and np.sign(ccw(A, B, C)) != np.sign(ccw(A, B, D))
 def ccw(A, B, C):
 #    True if direction is counter clockwise
     return (C.y - A.y) * (B.x - A.x) - (B.y - A.y) * (C.x - A.x)
@@ -197,7 +198,6 @@ def generate_coordinates(lengths, angles, asv, grid, obstacles):
     
     
 def check2(coordinate, asv, grid, obstacles):
-    print('check2')
     for coord, ASV in zip(coordinate, asv):
         ASV.x = coord[0]
         ASV.y = coord[1]
@@ -215,7 +215,6 @@ def check2(coordinate, asv, grid, obstacles):
     return False
 
 def check1(coordinate, asv):
-    print 'check1'
     for coord, ASV in zip(coordinate, asv):
         ASV.x = coord[0]
         ASV.y = coord[1]
@@ -272,6 +271,12 @@ def obtain_random_points(asv, n=5, obstacles=[-1, -1, -1, -1],grid=np.zeros(shap
                 y.append(int(i.y))
             points.append(sample)
             if debug:
+                ox1 = [0,200,200,0,0]
+                ox2 = [500,700,700,500,500]
+                oy1 = [200,200,400,400,200]
+                oy2 = [600,600,900,900, 600]
+                py.plot(ox1, oy1, '-+')
+                py.plot(ox2, oy2, '-+')
                 py.plot(x, y, '-+')
                 py.show()
                 x = []
