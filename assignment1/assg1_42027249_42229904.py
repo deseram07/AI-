@@ -41,20 +41,21 @@ def display_path(outputfile, sample):
     xp = []
     yp = []
     for x in range(len(path)):
-        for i in range(len(path[x])/2):
-            xp.append(1000.0 * path[x][i*2])
-            yp.append(1000.0 * path[x][i*2 + 1])
-            ox1 = [0,200,200,0,0]
-            ox2 = [500,700,700,500,500]
-            oy1 = [200,200,400,400,200]
-            oy2 = [600,600,900,900, 600]
-        print xp
-        py.plot(ox1, oy1, '-+')
-        py.plot(ox2, oy2, '-+')
-        py.plot(xp, yp, '-+')
-        py.show()
-        xp = []
-        yp = []
+        if debug:
+            for i in range(len(path[x])/2):
+                xp.append(1000.0 * path[x][i*2])
+                yp.append(1000.0 * path[x][i*2 + 1])
+                ox1 = [0,200,200,0,0]
+                ox2 = [500,700,700,500,500]
+                oy1 = [200,200,400,400,200]
+                oy2 = [600,600,900,900, 600]
+            print xp, yp
+            py.plot(ox1, oy1, '-+')
+            py.plot(ox2, oy2, '-+')
+            py.plot(xp, yp, '-+')
+            py.show()
+            xp = []
+            yp = []
         outputfile.write(' '.join(map(str, path[x])))
         
 # returns the estimated cost to destination from current position
@@ -145,7 +146,7 @@ def process(cSpace, start, dest):
                     else:
                         update_sample(d, sample)
                         heapq.heappush(AStar.op, (d.f, d))
-                
+    return False            
         
 
 def main(inputfile, outputfile):
@@ -163,8 +164,6 @@ def main(inputfile, outputfile):
 
     asv = []
     number = int(lines[0].strip('\n'))
-    rmin = 7 * (number - 1)
-    minArea = np.pi * rmin * rmin
     for i in range(number):
         # Create and initialise ASVs
         asv.append(ASV(i, start[i * 2], start[i * 2 + 1], finish[i * 2], finish[i * 2 + 1]))
@@ -187,9 +186,15 @@ def main(inputfile, outputfile):
                 final_obstacle[index] = 0
             index += 1 
         grid[final_obstacle[0]:final_obstacle[1], final_obstacle[2]:final_obstacle[3]] = 1
-
-    cSpace = obtain_random_points(asv, 10000, obstacles, grid )
+    
+    i = 1
+    cSpace = obtain_random_points(asv, 5000, obstacles, grid )
     end = process(cSpace, start[:-number+1], finish[:-number+1])
+    while end == False:
+        print 'trying again'
+        cSpace = obtain_random_points(asv, 5000*i*5, obstacles, grid )
+        end = process(cSpace, start[:-number+1], finish[:-number+1])
+        i+=1
     display_path(output, end)
     output.close()
     file.close()
