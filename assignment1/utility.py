@@ -5,7 +5,9 @@ import heapq
 import random
 import time
 import pylab as py
-debug = 1
+
+debug = 0
+
 # creating an ASV
 class ASV:
     def __init__(self, num, x, y, destx, desty):
@@ -19,13 +21,15 @@ class ASV:
         self.boom = 0
         self.direction = None
 
-# cell class
-class Cell:
-    def __init__(self, x, y, reachable):
+# sample class
+class Sample:
+    def __init__(self, coordinates, cx, cy, x, y):#, angle):
+        self.coords = coordinates
+        self.cx = cx
+        self.cy = cy
         self.x = x
         self.y = y
-        self.visited = None
-        self.reachable = reachable
+#         self.angle = angle
         self.parent = None
         self.g = 0
         self.h = 0
@@ -43,9 +47,9 @@ class Astar:
         self.op = []
         heapq.heapify(self.op)
         self.cl = set()
-        self.cells = []
+        self.samples = []
         self.width = 1000
-        self.height = 1000
+        self.grid = 10
         self.start = None
         self.end = None
 
@@ -266,7 +270,8 @@ def obtain_random_points(asv, n=5, obstacles=[-1, -1, -1, -1],grid=np.zeros(shap
         lengths, angles = random_length_angle(asv)
         if generate_coordinates(lengths, angles, asv, grid, obstacles):
             for i in asv:
-                sample.append([int(i.x), int(i.y)])
+                sample.append(int(i.x))
+                sample.append(int(i.y))
                 x.append(int(i.x))
                 y.append(int(i.y))
             points.append(sample)
@@ -301,3 +306,16 @@ def check_collision(obstacles, asv):
                 if intersect(Point(asv[i].x, asv[i].y), Point(asv[i + 1].x, asv[i + 1].y), Point((obstacles[j])[(pairs[k])[0]], (obstacles[j])[(pairs[k])[1]]), Point((obstacles[j])[(pairs[k])[2]], (obstacles[j])[(pairs[k])[3]])):
                     return True
     return False
+
+def centroid_angle(coords):
+    num = len(coords) / 2
+    sumx = 0
+    sumy = 0
+#     print coords
+    for i in range(num):
+        sumx = sumx + coords[i]
+        sumy = sumy + coords[i+1]
+    cx = sumx / num
+    cy = sumy / num
+#     angle = angles(Point(coords[0] + 1, coords[1]), Point(coords[0], coords[1]), Point(cx, cy))
+    return cx, cy #, angle
