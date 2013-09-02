@@ -108,8 +108,8 @@ def get_samples(array, x, y):
     return array[y][x]
 
 # updates adjacent sample with details from current sample
-def update_sample(adj, sample):
-    adj.g = sample.g + get_dist(sample, adj)
+def update_sample(adj, sample, g):
+    adj.g = sample.g + g
     adj.h = get_h(adj)
     adj.parent = sample
     adj.f = adj.g + adj.h
@@ -134,9 +134,11 @@ def get_adj(array, sample):
             samples.append(get_samples(array, sample.x + i, sample.y + j))
     return samples
 
-def points_to_polar(coords):
+def points_to_polar(coords, dir):
     polar = [coords[0], coords[1]]
     rotate = angles(Point(coords[0]+1, coords[1]), Point(coords[0],coords[1]), Point(coords[2],coords[3]))
+    if dir < 0:
+        rotate = 2*np.pi - rotate
     angle = []
     lengths = [boom_length(Point(coords[0],coords[1]))]
     for i in range(len(coords)/2-2):
@@ -148,7 +150,6 @@ def points_to_polar(coords):
     return polar    
 
 def check_line(start, end, obstacles):
-    
     pass
 
 # A* search processing
@@ -158,19 +159,12 @@ def process(cSpace, start, dest, dir):
     for i in cSpace:
         array[i[1] / AStar.grid][i[0] / AStar.grid].append(Sample(i))
     
-    # add end position to samples
-#     final = [dest[0], dest[1]]
-#     final.append(angles(Point(dest[0]+1, dest[1]), Point(dest[0],dest[1]), Point(dest[2],dest[3])))
-#     for i in range(len(dest)/2 - 1):
-#         final.append(boom_length(Point(dest[i*2], dest[i*2+1]), Point(dest[(i+1)*2],dest[(i+1)*2])))
-#         final.append(angles(Point(dest[(i-1)*2]+1, dest[(i-1)*2+1]), Point(dest[i],dest[i+1]), Point(dest[i*2+1],dest[3])))
-#   
-    finish = points_to_polar(dest)  
+    finish = points_to_polar(dest, dir)  
     AStar.end = Sample(finish)
     array[AStar.end.coords[1] / AStar.grid][AStar.end.coords[0] / AStar.grid].append(AStar.end)
     
     # create start position sample
-    begin = points_to_polar(start)
+    begin = points_to_polar(start, dir)
     AStar.start = Sample(begin)
     AStar.start.h = get_h(AStar.start)
     AStar.start.f = AStar.start.g + AStar.start.f
@@ -191,13 +185,15 @@ def process(cSpace, start, dest, dir):
         for c in adj_samples:
             for d in c:
                 ########## INTERPOLATE AND CHECK CONNECTION
-                if d not in AStar.cl:
-                    if (d.f, d) in AStar.op:
-                        if d.g > (sample.g + get_dist(sample, d)):
+                g = extract_points(c.coords, sample.coords, AStar)
+                if g != -1:
+                    if d not in AStar.cl:
+                        if (d.f, d) in AStar.op:
+                            if d.g > (sample.g + get_dist(sample, d)):
+                                update_sample(d, sample)
+                        else:
                             update_sample(d, sample)
-                    else:
-                        update_sample(d, sample)
-                        heapq.heappush(AStar.op, (d.f, d))
+                            heapq.heappush(AStar.op, (d.f, d))
     return False            
         
 
