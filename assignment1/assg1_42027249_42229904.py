@@ -175,7 +175,6 @@ def process(cSpace, start, dest):
 
 #                generate states between them
 #                    changing angle and moving
-                    
                 if d not in AStar.cl:
                     if (d.f, d) in AStar.op:
                         if d.g > (sample.g + get_dist(sample, d)):
@@ -191,6 +190,8 @@ def main(inputfile, outputfile):
     global AStar
     obstacles = []
     cSpace = []
+    obstacle_x = []
+    obstacle_y = []
     AStar = Astar()
     grid = np.zeros(shape=(1000, 1000))
     file = open(inputfile, 'r')
@@ -216,12 +217,18 @@ def main(inputfile, outputfile):
     for j in range(int(lines[3].strip('\n'))):
         obstacle = remove_decimal(lines[j + 4].strip('\n').split(' '))
         obstacles.append(obstacle)
+
+    for i in obstacles:
+        x = sorted(i[::2])
+        y = sorted(i[1::2])
+        AStar.obstacle_x.append([x[0],x[-1]]) #[[x_low,x_high],[x1_low,x1_high]]
+        AStar.obstacle_y.append([y[0],y[-1]])
     i = 2
     cSpace = obtain_random_points(asv, 1000, obstacles, grid )
     end = process(cSpace, start[:-number+1], finish[:-number+1])
     while end == False:
         print 'trying again'
-        cSpace = obtain_random_points(asv, 1000*i, obstacles, grid )
+        cSpace = obtain_random_points(asv, 1000*i, obstacles, AStar)
         end = process(cSpace, start[:-number+1], finish[:-number+1])
         i+=1
     display_path(output, end)

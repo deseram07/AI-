@@ -29,6 +29,7 @@ class Sample:
         self.cy = cy
         self.x = x
         self.y = y
+        self.points = None
 #         self.angle = angle
         self.parent = None
         self.g = 0
@@ -45,6 +46,8 @@ class Point:
 class Astar:
     def __init__(self):
         self.op = []
+        self.obstacle_x = None
+        self.obstacle_y = None
         heapq.heapify(self.op)
         self.cl = set()
         self.samples = []
@@ -174,7 +177,7 @@ def random_length_angle(asv):
             angles.append(angle)
     return lengths, angles
 
-def check_coordinates(lengths, angles, asv, grid, obstacles,rotate, shift):
+def check_coordinates(lengths, angles, asv, AStar, rotate, shift):
     init_coord = [0, 0]
     coordinate = []
     
@@ -192,27 +195,27 @@ def check_coordinates(lengths, angles, asv, grid, obstacles,rotate, shift):
     if check1(coordinate, asv):
         shift = Shift(coordinate, shift)
         coordinate = Rotate2D(shift, rotate)
-        return check2(coordinate, asv, grid, obstacles)
+        return check2(coordinate, asv, AStar)
 #         return True
     else:
         return False
     
     
-def check2(coordinate, asv, grid, obstacles):
+def check2(coordinate, asv, AStar):
     for coord, ASV in zip(coordinate, asv):
         ASV.x = coord[0]
         ASV.y = coord[1]
     
-    obstacle_x = []
-    obstacle_y = []
-    for i in obstacles:
-        x = sorted(i[::2])
-        y = sorted(i[1::2])
-        obstacle_x.append([x[0],x[-1]])
-        obstacle_y.append([y[0],y[-1]])
+    obstacle_x = AStar.obstacle_x
+    obstacle_y = AStar.obstacle_y
+#    for i in obstacles:
+#        x = sorted(i[::2])
+#        y = sorted(i[1::2])
+#        obstacle_x.append([x[0],x[-1]])
+#        obstacle_y.append([y[0],y[-1]])
         
     # boom in obstacle (True for collision)
-    if check_collision(obstacles, asv) == False:
+    if check_collision(AStar, asv) == False:
         for i in asv:
             if 0 <= i.x <= 1000 and  0 <= i.y <= 1000:
                 # coord not in obstacle
@@ -266,7 +269,7 @@ def Rotate2D(pts, ang, midpoint = [0, 0]):
     cnt = np.array(midpoint)
     return (np.dot(pts - cnt, np.array([[np.cos(ang), np.sin(ang)], [-np.sin(ang), np.cos(ang)]])) + cnt).tolist()
     
-def obtain_random_points(asv, n=5, obstacles=[-1, -1, -1, -1],grid=np.zeros(shape=(1000, 1000))):
+def obtain_random_points(asv, n=5, AStar):
     points = []
     sample = []
     x = []
@@ -276,28 +279,29 @@ def obtain_random_points(asv, n=5, obstacles=[-1, -1, -1, -1],grid=np.zeros(shap
     if debug:
         oxs = []
         oys = []
-        for j in obstacles:
-            x = j[::2]
-            y = j[1::2]
-            x.append(j[0])
-            y.append(j[1])
-            oxs.append(x)
-            oys.append(y)
+#        for j in obstacles:
+#            x = j[::2]
+#            y = j[1::2]
+#            x.append(j[0])
+#            y.append(j[1])
+#            oxs.append(x)
+#            oys.append(y)
     while count < n:
-        
         #    placing the point in random location, this ensures that point lies on gird
         shift = [(random.random()) * 1000.0, (random.random()) * 1000.0]
         rotate = random.random() * np.pi * 2.0
         lengths, angles = random_length_angle(asv)
         
-        if check_coordinates(lengths, angles, asv, grid, obstacles, rotate, shift):
+        if check_coordinates(lengths, angles, asv, AStar, rotate, shift):
             for i in shift:
                 sample.append(i)
             sample.append(rotate)
-            for i in range(len(lengths)):
-                sample.append(lengths[i])
-                if i < len(lengths)-1:
-                    sample.append(angles[i])
+            sample.append(lengths)
+            sample.append(angles[:-2])
+#            for i in range(len(lengths)):
+#                sample.append(lengths[i])
+#                if i < len(lengths)-1:
+#                    sample.append(angles[i])
                 
 #            for i in 
 #            sample.append(object)
@@ -327,14 +331,36 @@ def constrained_sum_sample_pos(n, total):
     return [a - b for a, b in zip(dividers + [total], [0] + dividers)]
     
 # Check for collisions returns True for a collision
-def check_collision(obstacles, asv):
-    pairs = [[0, 1, 2, 3], [2, 3, 4, 5], [4, 5, 6, 7], [6, 7, 0, 1]]
+def check_collision(AStar, asv):
+    corners = []
+    for k in AStar.obstacle_x:
+        minx = AStar.obstacle_x[0]
+        miny = AStar.obstacle_y[0]
+        maxx = AStar.obstacle_x[1]
+        maxy = AStar.obstacle_y[1]
+        corners.append([Point(minx,miny), Point(minx,maxy), Point(maxx,miny), Point(maxx,maxy)])
     for i in range(len(asv) - 1):
-        for j in range(len(obstacles)):
-            for k in range(len(pairs)):
-                if intersect(Point(asv[i].x, asv[i].y), Point(asv[i + 1].x, asv[i + 1].y), Point((obstacles[j])[(pairs[k])[0]], (obstacles[j])[(pairs[k])[1]]), Point((obstacles[j])[(pairs[k])[2]], (obstacles[j])[(pairs[k])[3]])):
-                    return True
+        for j in AStar.obstacle_x:
+            for k in corners:
+                for l in range(len(k)):
+                    A = Point(asv[i].x, asv[i].y)
+                    B = Point(asv[i + 1].x, asv[i + 1].y)
+                    C = k[l]
+                    if l == len(k):
+                        D = k[0]
+                    else:
+                        D = k[l+1]
+                    if intersect(A, B, C, D):
+                        return True
     return False
+#def check_collision(AStar, asv):
+#    pairs = [[0, 1, 2, 3], [2, 3, 4, 5], [4, 5, 6, 7], [6, 7, 0, 1]]
+#    for i in range(len(asv) - 1):
+#        for j in range(len(obstacles)):
+#            for k in range(len(pairs)):
+#                if intersect(Point(asv[i].x, asv[i].y), Point(asv[i + 1].x, asv[i + 1].y), Point((obstacles[j])[(pairs[k])[0]], (obstacles[j])[(pairs[k])[1]]), Point((obstacles[j])[(pairs[k])[2]], (obstacles[j])[(pairs[k])[3]])):
+#                    return True
+#    return False
 
 def centroid_angle(coords):
     num = len(coords) / 2
@@ -374,7 +400,22 @@ def interpolate(current, previous):
         moves.append(move)
         move = []
     return moves
-            
+
+def extract_points(new, origin, AStar):
+    
+    route = interpolate([new[0],new[1]],[origin[0],origin[1]])
+    for point in route:
+        for o in range(len(AStar.obstacle_x)):
+            if AStar.obstacle_x[o][0] <= point[0] and AStar.obstacle_x[o][1] >= point[0] and AStar.obstacle_y[o][0] <= point[1] and AStar.obstacle_y[o][1] >= point[1]:
+                return -1
+
+    No_step = abs(new[0] - origin[0]) - (new[1] - origin[1])
+    gamma = new[2] - origin[2]
+    delta_angles = []
+    
+    for i in range(len(new[4])):
+        delta_angles.append((new[4][i] - origin[4][i])/No_step)
+    delta_gamma = gamma/No_step    
         
-        
+    
         
