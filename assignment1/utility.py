@@ -324,17 +324,26 @@ def interpolate(current, previous):
 #    assuming that the coordinates provided at x0,y0,x1,y1,x2,y2
     moves = []
     move = []
+    x = True
     while True:
         if current == previous:
             break
-        for i in range(len(current)):
-            if current[i] != previous[i]:
-                previous[i] = previous[i] + np.sign(current[i] - previous[i])
-                move.append(previous[i])
+        for index in range(len(current)/2):
+            if x:
+                i =index * 2
             else:
-                move.append(previous[i])
+                i =(index * 2) + 1
+            if current[i] != previous[i]:
+                previous[i] = previous[i] + (np.sign(current[i] - previous[i]) * 1)
+        if x:
+            x = False
+        else:
+            x = True
+        for i in previous:
+            move.append(i)
         moves.append(move)
         move = []
+
     return moves
             
         
