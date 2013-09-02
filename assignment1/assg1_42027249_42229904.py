@@ -7,8 +7,8 @@ def get_dist(sample, other):
     distx = []
     disty = []
     for i in range(len(sample.coords) / 2):
-        distx.append(abs(sample.coords[i] - other.coords[i]))
-        disty.append(abs(sample.coords[i + 1] - other.coords[i + 1]))
+        distx.append(abs(sample.coords[i*2] - other.coords[i*2]))
+        disty.append(abs(sample.coords[i*2 + 1] - other.coords[i*2 + 1]))
     distx.sort(reverse=True)
     disty.sort(reverse=True)
     return distx[0] + disty[0]
@@ -25,13 +25,21 @@ def display_path(outputfile, sample):
 
 #     print 'path found'
     path = []
+    ccxx = []
+    ccyy = []
 #     print AStar.start.coords
     # creates path from the end to the start inserting into the beginning 
     while sample.parent is not AStar.start:
         coords = get_decimal(sample.coords)
         path.insert(0, coords)
+        ccxx.append(sample.cx)
+        ccyy.append(sample.cy)
         sample = sample.parent
     # inserts the start configuration into the path
+    for i in range(len(ccxx)-1):
+        xxx = ccxx[i+1]-ccxx[i]
+        yyy = ccyy[i+1]-ccyy[i]
+        print np.sqrt(xxx**2 + yyy**2)
     coords = get_decimal(AStar.start.coords)
     path.insert(0, coords)
     # outputs the path with the coordinates of each configuration separated by spaces
@@ -72,7 +80,7 @@ def display_path(outputfile, sample):
                 ox2 = [500,700,700,500,500]
                 oy1 = [200,200,400,400,200]
                 oy2 = [600,600,900,900, 600]
-            print xp, yp
+#            print xp, yp
             py.plot(ox1, oy1, '-+')
             py.plot(ox2, oy2, '-+')
             py.plot(xp, yp, '-+')
@@ -133,6 +141,7 @@ def process(cSpace, start, dest):
     # add end position to samples
 #     cx, cy, angle = centroid_angle(dest)
     cx, cy = centroid_angle(dest)
+    print "dest = ",cx,cy, "\n", dest
     AStar.end = Sample(dest, cx, cy, cx / AStar.grid, cy / AStar.grid)#, angle)
     array[cy / AStar.grid][cx / AStar.grid].append(AStar.end)
     
@@ -146,12 +155,9 @@ def process(cSpace, start, dest):
     # start A* search
     heapq.heappush(AStar.op, (AStar.start.f, AStar.start))
     while len(AStar.op):
-#         print 'searching'
         # get sample from the open list based on samples f value
         f, sample = heapq.heappop(AStar.op)
         AStar.cl.add(sample)
-#         print sample.coords
-#         print AStar.end.coords
         for i in range(len(sample.coords)):
             if sample.coords[i] != AStar.end.coords[i]:
                 break
@@ -205,11 +211,11 @@ def main(inputfile, outputfile):
         obstacle = remove_decimal(lines[j + 4].strip('\n').split(' '))
         obstacles.append(obstacle)
     i = 2
-    cSpace = obtain_random_points(asv, 2500, obstacles, grid )
+    cSpace = obtain_random_points(asv, 1000, obstacles, grid )
     end = process(cSpace, start[:-number+1], finish[:-number+1])
     while end == False:
         print 'trying again'
-        cSpace = obtain_random_points(asv, 2500*i, obstacles, grid )
+        cSpace = obtain_random_points(asv, 1000*i, obstacles, grid )
         end = process(cSpace, start[:-number+1], finish[:-number+1])
         i+=1
     display_path(output, end)

@@ -6,7 +6,7 @@ import random
 import time
 import pylab as py
 
-debug = 1
+debug = 0
 
 # creating an ASV
 class ASV:
@@ -49,7 +49,7 @@ class Astar:
         self.cl = set()
         self.samples = []
         self.width = 1000
-        self.grid = 50
+        self.grid = 10
         self.start = None
         self.end = None
 
@@ -275,6 +275,16 @@ def obtain_random_points(asv, n=5, obstacles=[-1, -1, -1, -1],grid=np.zeros(shap
     x = []
     y = []
     count = 0
+    if debug:
+        oxs = []
+        oys = []
+        for j in obstacles:
+            x = j[::2]
+            y = j[1::2]
+            x.append(j[0])
+            y.append(j[1])
+            oxs.append(x)
+            oys.append(y)
     while count < n:
         lengths, angles = random_length_angle(asv)
         if generate_coordinates(lengths, angles, asv, grid, obstacles):
@@ -284,17 +294,13 @@ def obtain_random_points(asv, n=5, obstacles=[-1, -1, -1, -1],grid=np.zeros(shap
                 x.append(int(i.x))
                 y.append(int(i.y))
             points.append(sample)
-#            if debug:
-#                ox1 = [0,200,200,0,0]
-#                ox2 = [500,700,700,500,500]
-#                oy1 = [200,200,400,400,200]
-#                oy2 = [600,600,900,900, 600]
-#                py.plot(ox1, oy1, '-+')
-#                py.plot(ox2, oy2, '-+')
-#                py.plot(x, y, '-+')
-#                py.show()
-#                x = []
-#                y = []
+            if debug:
+                for i in range(len(oxs)):
+                    py.plot(oxs[i], oys[i], '-+')
+                py.plot(x, y, '-+')
+                py.show()
+                x = []
+                y = []
             sample = []
             count += 1
     print "Finished sampling"
