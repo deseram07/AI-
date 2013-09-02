@@ -49,7 +49,7 @@ class Astar:
         self.cl = set()
         self.samples = []
         self.width = 1000
-        self.grid = 10
+        self.grid = 25
         self.start = None
         self.end = None
 
