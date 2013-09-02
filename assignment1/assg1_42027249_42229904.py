@@ -40,20 +40,30 @@ def display_path(outputfile, sample):
     lines = 0
     previous = path[0]
     data = ''
+    
+    f = 0
     for i in previous:
-        data += str(i) + " "
-        lines += 1
+        f += 1
+        data += str(i)
+        if f != len(previous):
+            data += " "
+    lines += 1
     data += "\n"
         
     for x in range(1,len(path)):
         current = path[x]
         move = interpolate(current, previous)
         previous = current
+        f = 0
         for coord in move:
             for i in coord:
-                data += str(i) + " "
-                lines += 1
+                f += 1
+                data += str(i)
+                if f != len(previous):
+                    data += " "
+            lines += 1
             data += "\n"
+            f = 0
         if debug:
             for i in range(len(path[x])/2):
                 xp.append(1000.0 * path[x][i*2])
@@ -69,7 +79,7 @@ def display_path(outputfile, sample):
             py.show()
             xp = []
             yp = []
-    length = str(lines) + ' ' + "52 \n"
+    length = str(lines) + ' ' + "0.52\n"
     text = length + data
     outputfile.write(text)
         
@@ -194,20 +204,12 @@ def main(inputfile, outputfile):
     for j in range(int(lines[3].strip('\n'))):
         obstacle = remove_decimal(lines[j + 4].strip('\n').split(' '))
         obstacles.append(obstacle)
-        final_obstacle = [obstacle[1], obstacle[5] + 1, obstacle[0], obstacle[4] + 1]
-        index = 0
-        while index < len(final_obstacle):
-            if final_obstacle[index] < 0:
-                final_obstacle[index] = 0
-            index += 1 
-        grid[final_obstacle[0]:final_obstacle[1], final_obstacle[2]:final_obstacle[3]] = 1
-    
-    i = 1
-    cSpace = obtain_random_points(asv, 5000, obstacles, grid )
+    i = 2
+    cSpace = obtain_random_points(asv, 2500, obstacles, grid )
     end = process(cSpace, start[:-number+1], finish[:-number+1])
     while end == False:
         print 'trying again'
-        cSpace = obtain_random_points(asv, 5000*i*5, obstacles, grid )
+        cSpace = obtain_random_points(asv, 2500*i, obstacles, grid )
         end = process(cSpace, start[:-number+1], finish[:-number+1])
         i+=1
     display_path(output, end)

@@ -6,7 +6,7 @@ import random
 import time
 import pylab as py
 
-debug = 0
+debug = 1
 
 # creating an ASV
 class ASV:
@@ -49,7 +49,7 @@ class Astar:
         self.cl = set()
         self.samples = []
         self.width = 1000
-        self.grid = 10
+        self.grid = 50
         self.start = None
         self.end = None
 
@@ -206,13 +206,22 @@ def check2(coordinate, asv, grid, obstacles):
         ASV.x = coord[0]
         ASV.y = coord[1]
     
+    obstacle_x = []
+    obstacle_y = []
+    for i in obstacles:
+        x = sorted(i[::2])
+        y = sorted(i[1::2])
+        obstacle_x.append([x[0],x[-1]])
+        obstacle_y.append([y[0],y[-1]])
+        
     # boom in obstacle (True for collision)
     if check_collision(obstacles, asv) == False:
         for i in asv:
             if 0 <= i.x <= 1000 and  0 <= i.y <= 1000:
                 # coord not in obstacle
-                if grid[i.y][i.x] == 0:
-                    pass
+                for o in range(len(obstacle_x)):
+                    if obstacle_x[o][0] <= i.x and obstacle_x[o][1] >= i.x and obstacle_y[o][0] <= i.y and obstacle_y[o][1] >= i.y:
+                        return False
             else:
                 return False
         return True
@@ -275,19 +284,20 @@ def obtain_random_points(asv, n=5, obstacles=[-1, -1, -1, -1],grid=np.zeros(shap
                 x.append(int(i.x))
                 y.append(int(i.y))
             points.append(sample)
-            if debug:
-                ox1 = [0,200,200,0,0]
-                ox2 = [500,700,700,500,500]
-                oy1 = [200,200,400,400,200]
-                oy2 = [600,600,900,900, 600]
-                py.plot(ox1, oy1, '-+')
-                py.plot(ox2, oy2, '-+')
-                py.plot(x, y, '-+')
-                py.show()
-                x = []
-                y = []
+#            if debug:
+#                ox1 = [0,200,200,0,0]
+#                ox2 = [500,700,700,500,500]
+#                oy1 = [200,200,400,400,200]
+#                oy2 = [600,600,900,900, 600]
+#                py.plot(ox1, oy1, '-+')
+#                py.plot(ox2, oy2, '-+')
+#                py.plot(x, y, '-+')
+#                py.show()
+#                x = []
+#                y = []
             sample = []
             count += 1
+    print "Finished sampling"
     return points
 
 def constrained_sum_sample_pos(n, total):
