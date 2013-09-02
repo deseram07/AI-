@@ -23,13 +23,14 @@ class ASV:
 
 # sample class
 class Sample:
-    def __init__(self, coordinates, cx, cy, x, y):  # , angle):
+    def __init__(self, coordinates):#, cx, cy, x, y):#, angle):
         self.coords = coordinates
-        self.cx = cx
-        self.cy = cy
-        self.x = x
-        self.y = y
+#         self.cx = cx
+#         self.cy = cy
+#         self.x = x
+#         self.y = y
 #         self.angle = angle
+        self.points = []
         self.parent = None
         self.g = 0
         self.h = 0
@@ -49,7 +50,7 @@ class Astar:
         self.cl = set()
         self.samples = []
         self.width = 1000
-        self.grid = 25
+        self.grid = 10
         self.start = None
         self.end = None
 
@@ -206,13 +207,22 @@ def check2(coordinate, asv, grid, obstacles):
         ASV.x = coord[0]
         ASV.y = coord[1]
     
+    obstacle_x = []
+    obstacle_y = []
+    for i in obstacles:
+        x = sorted(i[::2])
+        y = sorted(i[1::2])
+        obstacle_x.append([x[0],x[-1]])
+        obstacle_y.append([y[0],y[-1]])
+        
     # boom in obstacle (True for collision)
     if check_collision(obstacles, asv) == False:
         for i in asv:
             if 0 <= i.x <= 1000 and  0 <= i.y <= 1000:
                 # coord not in obstacle
-                if grid[i.y][i.x] == 1:
-                    return False
+                for o in range(len(obstacle_x)):
+                    if obstacle_x[o][0] <= i.x and obstacle_x[o][1] >= i.x and obstacle_y[o][0] <= i.y and obstacle_y[o][1] >= i.y:
+                        return False
             else:
                 return False
         return True
@@ -260,7 +270,7 @@ def Rotate2D(pts, ang):
     cnt = np.array([0, 0])
     return (np.dot(pts - cnt, np.array([[np.cos(ang), np.sin(ang)], [-np.sin(ang), np.cos(ang)]])) + cnt).tolist()
     
-def obtain_random_points(asv, n=5, obstacles=[-1, -1, -1, -1], grid=np.zeros(shape=(1000, 1000))):
+def obtain_random_points(asv, n=5, obstacles=[-1, -1, -1, -1],grid=np.zeros(shape=(1000, 1000))):
     points = []
     sample = []
     x = []
@@ -294,6 +304,7 @@ def obtain_random_points(asv, n=5, obstacles=[-1, -1, -1, -1], grid=np.zeros(sha
                 y = []
             sample = []
             count += 1
+    print "Finished sampling"
     return points
 
 def constrained_sum_sample_pos(n, total):
@@ -304,12 +315,51 @@ def constrained_sum_sample_pos(n, total):
     return [a - b for a, b in zip(dividers + [total], [0] + dividers)]
     
 # Check for collisions returns True for a collision
-def check_collision(obstacles, asv):
-    pairs = [[0, 1, 2, 3], [2, 3, 4, 5], [4, 5, 6, 7], [6, 7, 0, 1]]
+def dup_check_collision(AStar, coordinates):
+    corners = []
+    for k in AStar.obstacle_x:
+        minx = AStar.obstacle_x[0]
+        miny = AStar.obstacle_y[0]
+        maxx = AStar.obstacle_x[1]
+        maxy = AStar.obstacle_y[1]
+        corners.append([Point(minx,miny), Point(minx,maxy), Point(maxx,miny), Point(maxx,maxy)])
+        
+    for i in range(len(coordinates)/2 - 1):
+        for k in corners:
+            for l in range(len(k)):
+                A = Point(coordinates[i*2], coordinates[i*2+1])
+                B = Point(coordinates[(i + 1)*2], coordinates[(i + 1)*2+1])
+                C = k[l]
+                if l == len(k):
+                    D = k[0]
+                else:
+                    D = k[l+1]
+                if intersect(A, B, C, D):
+                    return True
+    return False
+
+
+# Check for collisions returns True for a collision
+def check_collision(AStar, asv):
+    corners = []
+    for k in AStar.obstacle_x:
+        minx = AStar.obstacle_x[0]
+        miny = AStar.obstacle_y[0]
+        maxx = AStar.obstacle_x[1]
+        maxy = AStar.obstacle_y[1]
+        corners.append([Point(minx,miny), Point(minx,maxy), Point(maxx,miny), Point(maxx,maxy)])
+        
     for i in range(len(asv) - 1):
-        for j in range(len(obstacles)):
-            for k in range(len(pairs)):
-                if intersect(Point(asv[i].x, asv[i].y), Point(asv[i + 1].x, asv[i + 1].y), Point((obstacles[j])[(pairs[k])[0]], (obstacles[j])[(pairs[k])[1]]), Point((obstacles[j])[(pairs[k])[2]], (obstacles[j])[(pairs[k])[3]])):
+        for k in corners:
+            for l in range(len(k)):
+                A = Point(asv[i].x, asv[i].y)
+                B = Point(asv[i + 1].x, asv[i + 1].y)
+                C = k[l]
+                if l == len(k):
+                    D = k[0]
+                else:
+                    D = k[l+1]
+                if intersect(A, B, C, D):
                     return True
     return False
 
@@ -320,25 +370,35 @@ def centroid_angle(coords):
 #     print coords
     for i in range(num):
         sumx = sumx + coords[i]
-        sumy = sumy + coords[i + 1]
+        sumy = sumy + coords[i+1]
     cx = sumx / num
     cy = sumy / num
 #     angle = angles(Point(coords[0] + 1, coords[1]), Point(coords[0], coords[1]), Point(cx, cy))
-    return cx, cy  # , angle
+    return cx, cy #, angle
 
 def interpolate(current, previous):
 #    assuming that the coordinates provided at x0,y0,x1,y1,x2,y2
     moves = []
     move = []
+    x = True
+    print current,previous
     while True:
         if current == previous:
             break
-        for i in range(len(current)):
-            if current[i] != previous[i]:
-                previous[i] = previous[i] + np.sign(current[i] - previous[i])
-                move.append(previous[i])
+        for index in range(len(current)/2):
+            if x:
+                i =index * 2
             else:
-                move.append(previous[i])
+                i =(index * 2) + 1
+            if round(current[i],3) != round(previous[i],3):
+                previous[i] = round(previous[i] + (np.sign(current[i] - previous[i]) * 0.001),3)
+        if x:
+            x = False
+        else:
+            x = True
+#        print previous
+        for i in previous:
+            move.append(i)
         moves.append(move)
         move = []
     return moves
