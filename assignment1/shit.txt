@@ -1,0 +1,14 @@
+from utility import *
+asv0 = ASV(0,1,1,5,5)
+asv1 = ASV(0,2,2,5,5)
+asv2 = ASV(0,2,3,5,5)
+asv3 = ASV(0,2,4,5,5)
+asv4 = ASV(0,1,7,5,5)
+asv = [asv4,asv3,asv2,asv1,asv0]
+asv[0].direction = ccw(asv[0],asv[1],asv[2])
+x,y = random_length_angle(asv)
+g = [np.rad2deg(i) for i in y]
+obtain_random_points(asv) 	
+
+from utility import *
+interpolate([0.449, 0.366, 0.499, 0.366, 0.465, 0.421], [0.5, 0.5, 0.275, 0.4, 0.3, 0.35])
