@@ -69,7 +69,7 @@ def display_path(outputfile, sample):
             py.show()
             xp = []
             yp = []
-    length = str(lines) + ' ' + "52/n"
+    length = str(lines) + ' ' + "52 \n"
     text = length + data
     outputfile.write(text)
         
