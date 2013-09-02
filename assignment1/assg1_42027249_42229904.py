@@ -170,6 +170,12 @@ def process(cSpace, start, dest):
         adj_samples = get_adj(array, sample)
         for c in adj_samples:
             for d in c:
+#                check whether line between corresponding leader asv go through
+#                obstacle
+
+#                generate states between them
+#                    changing angle and moving
+                    
                 if d not in AStar.cl:
                     if (d.f, d) in AStar.op:
                         if d.g > (sample.g + get_dist(sample, d)):

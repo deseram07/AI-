@@ -174,20 +174,17 @@ def random_length_angle(asv):
             angles.append(angle)
     return lengths, angles
 
-def generate_coordinates(lengths, angles, asv, grid, obstacles):
+def check_coordinates(lengths, angles, asv, grid, obstacles,rotate, shift):
     init_coord = [0, 0]
     coordinate = []
-#    placing the point in random location, this ensures that point lies on gird
-    shift = [(random.random()) * 1000.0, (random.random()) * 1000.0]
-    rotate = random.random() * np.pi * 2.0
     
 #    first find the points with initial boom on x axis with 0 degree rotation
     coordinate.append(init_coord)
-    coordinate.append([init_coord[0] + lengths.pop(0), init_coord[1]])
-    for i in range(len(lengths)):
+    coordinate.append([init_coord[0] + lengths[0], init_coord[1]])
+    for i in range(1,len(lengths)):
         [x, y] = coordinate[-1]
-        angle = angles.pop(0)
-        length = lengths.pop(0)
+        angle = angles[i-1]
+        length = lengths[i]
         x = x + (length * np.cos(angle))
         y = y + (length * np.sin(angle))
         coordinate.append([x, y])
@@ -260,13 +257,13 @@ def Shift(pts, delta):
         pts[i][1] += dy
     return pts
 
-def Rotate2D(pts, ang):
+def Rotate2D(pts, ang, midpoint = [0, 0]):
     """
     Rotates a gives polygon about the origin in the counter clockwise direction 
     by (thetha) degrees
     """
     pts = np.array(pts)
-    cnt = np.array([0, 0])
+    cnt = np.array(midpoint)
     return (np.dot(pts - cnt, np.array([[np.cos(ang), np.sin(ang)], [-np.sin(ang), np.cos(ang)]])) + cnt).tolist()
     
 def obtain_random_points(asv, n=5, obstacles=[-1, -1, -1, -1],grid=np.zeros(shape=(1000, 1000))):
@@ -275,6 +272,7 @@ def obtain_random_points(asv, n=5, obstacles=[-1, -1, -1, -1],grid=np.zeros(shap
     x = []
     y = []
     count = 0
+    
     if debug:
         oxs = []
         oys = []
@@ -286,13 +284,28 @@ def obtain_random_points(asv, n=5, obstacles=[-1, -1, -1, -1],grid=np.zeros(shap
             oxs.append(x)
             oys.append(y)
     while count < n:
+        
+        #    placing the point in random location, this ensures that point lies on gird
+        shift = [(random.random()) * 1000.0, (random.random()) * 1000.0]
+        rotate = random.random() * np.pi * 2.0
         lengths, angles = random_length_angle(asv)
-        if generate_coordinates(lengths, angles, asv, grid, obstacles):
-            for i in asv:
-                sample.append(int(i.x))
-                sample.append(int(i.y))
-                x.append(int(i.x))
-                y.append(int(i.y))
+        
+        if check_coordinates(lengths, angles, asv, grid, obstacles, rotate, shift):
+            for i in shift:
+                sample.append(i)
+            sample.append(rotate)
+            for i in range(len(lengths)):
+                sample.append(lengths[i])
+                if i < len(lengths)-1:
+                    sample.append(angles[i])
+                
+#            for i in 
+#            sample.append(object)
+#            for i in asv:
+#                sample.append(int(i.x))
+#                sample.append(int(i.y))
+#                x.append(int(i.x))
+#                y.append(int(i.y))
             points.append(sample)
             if debug:
                 for i in range(len(oxs)):
@@ -304,7 +317,7 @@ def obtain_random_points(asv, n=5, obstacles=[-1, -1, -1, -1],grid=np.zeros(shap
             sample = []
             count += 1
     print "Finished sampling"
-    return points
+    print points
 
 def constrained_sum_sample_pos(n, total):
     """Return a randomly chosen list of n positive integers summing to total.
@@ -356,7 +369,6 @@ def interpolate(current, previous):
             x = False
         else:
             x = True
-#        print previous
         for i in previous:
             move.append(i)
         moves.append(move)
