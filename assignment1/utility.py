@@ -200,7 +200,24 @@ def check_coordinates(lengths, angles, asv, AStar, rotate, shift):
     else:
         return False
     
-    
+def obtain_coordintates(shift_x,shift_y,rotate,lengths,angles,AStar):
+    init_coord = [0,0]
+    shift = [shift_x,shift_y]
+    coordinate = []
+    coordinate.append(init_coord)
+    coordinate.append([init_coord[0] + lengths[0], init_coord[1]])
+    for i in range(1,len(lengths)):
+        [x, y] = coordinate[-1]
+        angle = angles[i-1]
+        length = lengths[i]
+        x = x + (length * np.cos(angle))
+        y = y + (length * np.sin(angle))
+        coordinate.append([x, y])
+        
+        shift = Shift(coordinate, shift)
+        coordinate = Rotate2D(shift, rotate)
+        return dup_check2(coordinate, AStar)
+        
 def check2(coordinate, asv, AStar):
     for coord, ASV in zip(coordinate, asv):
         ASV.x = coord[0]
@@ -208,6 +225,7 @@ def check2(coordinate, asv, AStar):
     
     obstacle_x = AStar.obstacle_x
     obstacle_y = AStar.obstacle_y
+    
 #    for i in obstacles:
 #        x = sorted(i[::2])
 #        y = sorted(i[1::2])
@@ -226,6 +244,30 @@ def check2(coordinate, asv, AStar):
                 return False
         return True
     return False
+
+def dup_check2(coordinate, AStar):
+
+    
+    obstacle_x = AStar.obstacle_x
+    obstacle_y = AStar.obstacle_y
+    
+    if debug:
+        print "obstacle_x = ", obstacle_x
+        print "obstacle_y = ", obstacle_y
+        print "Coordinate checked = ", coordinate
+          
+    # boom in obstacle (True for collision)
+    if dup_check_collision(AStar,coordinate) == False:  ##!!!!! need to make a function without the asv but coordinate
+        for i in range(len(coordinate)):
+            if 0 <= coordinate[i*2] <= 1000 and  0 <= coordinate[i*2 + 1] <= 1000:
+                # coord not in obstacle
+                for o in range(len(obstacle_x)):
+                    if obstacle_x[o][0] <= coordinate[i*2] and obstacle_x[o][1] >= coordinate[i*2] and obstacle_y[o][0] <= coordinate[i*2 + 1] and obstacle_y[o][1] >= coordinate[i*2 + 1]:
+                        return -1
+            else:
+                return -1
+        return coordinate
+    return -1
 
 def check1(coordinate, asv):
     for coord, ASV in zip(coordinate, asv):
@@ -269,23 +311,13 @@ def Rotate2D(pts, ang, midpoint = [0, 0]):
     cnt = np.array(midpoint)
     return (np.dot(pts - cnt, np.array([[np.cos(ang), np.sin(ang)], [-np.sin(ang), np.cos(ang)]])) + cnt).tolist()
     
-def obtain_random_points(asv, n=5, AStar):
+def obtain_random_points(asv, AStar, n=5):
     points = []
     sample = []
     x = []
     y = []
     count = 0
-    
-    if debug:
-        oxs = []
-        oys = []
-#        for j in obstacles:
-#            x = j[::2]
-#            y = j[1::2]
-#            x.append(j[0])
-#            y.append(j[1])
-#            oxs.append(x)
-#            oys.append(y)
+
     while count < n:
         #    placing the point in random location, this ensures that point lies on gird
         shift = [(random.random()) * 1000.0, (random.random()) * 1000.0]
@@ -298,18 +330,7 @@ def obtain_random_points(asv, n=5, AStar):
             sample.append(rotate)
             sample.append(lengths)
             sample.append(angles[:-2])
-#            for i in range(len(lengths)):
-#                sample.append(lengths[i])
-#                if i < len(lengths)-1:
-#                    sample.append(angles[i])
-                
-#            for i in 
-#            sample.append(object)
-#            for i in asv:
-#                sample.append(int(i.x))
-#                sample.append(int(i.y))
-#                x.append(int(i.x))
-#                y.append(int(i.y))
+
             points.append(sample)
             if debug:
                 for i in range(len(oxs)):
@@ -329,7 +350,30 @@ def constrained_sum_sample_pos(n, total):
 
     dividers = sorted(random.sample(xrange(1, total), n - 1))
     return [a - b for a, b in zip(dividers + [total], [0] + dividers)]
-    
+
+def dup_check_collision(AStar, coordinates):
+    corners = []
+    for k in AStar.obstacle_x:
+        minx = AStar.obstacle_x[0]
+        miny = AStar.obstacle_y[0]
+        maxx = AStar.obstacle_x[1]
+        maxy = AStar.obstacle_y[1]
+        corners.append([Point(minx,miny), Point(minx,maxy), Point(maxx,miny), Point(maxx,maxy)])
+        
+    for i in range(len(coordinates)/2 - 1):
+        for k in corners:
+            for l in range(len(k)):
+                A = Point(coordinates[i*2], coordinates[i*2+1])
+                B = Point(coordinates[(i + 1)*2], coordinates[(i + 1)*2+1])
+                C = k[l]
+                if l == len(k):
+                    D = k[0]
+                else:
+                    D = k[l+1]
+                if intersect(A, B, C, D):
+                    return True
+    return False
+
 # Check for collisions returns True for a collision
 def check_collision(AStar, asv):
     corners = []
@@ -353,6 +397,8 @@ def check_collision(AStar, asv):
                     if intersect(A, B, C, D):
                         return True
     return False
+
+
 #def check_collision(AStar, asv):
 #    pairs = [[0, 1, 2, 3], [2, 3, 4, 5], [4, 5, 6, 7], [6, 7, 0, 1]]
 #    for i in range(len(asv) - 1):
@@ -403,6 +449,10 @@ def interpolate(current, previous):
 
 def extract_points(new, origin, AStar):
     
+    prev_step = []
+    new_step = []
+    steps = []
+    
     route = interpolate([new[0],new[1]],[origin[0],origin[1]])
     for point in route:
         for o in range(len(AStar.obstacle_x)):
@@ -410,12 +460,12 @@ def extract_points(new, origin, AStar):
                 return -1
 
     No_step = abs(new[0] - origin[0]) - (new[1] - origin[1])
-    gamma = new[2] - origin[2]
+    delta_gamma = (new[2] - origin[2])/No_step
     delta_angles = []
     
     for i in range(len(new[4])):
-        delta_angles.append((new[4][i] - origin[4][i])/No_step)
-    delta_gamma = gamma/No_step    
-        
+        delta_angles.append((new[4][i] - origin[4][i])/float(No_step))
+
+    
     
         

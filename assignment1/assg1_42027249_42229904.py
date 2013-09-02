@@ -224,11 +224,11 @@ def main(inputfile, outputfile):
         AStar.obstacle_x.append([x[0],x[-1]]) #[[x_low,x_high],[x1_low,x1_high]]
         AStar.obstacle_y.append([y[0],y[-1]])
     i = 2
-    cSpace = obtain_random_points(asv, 1000, obstacles, grid )
+    cSpace = obtain_random_points(asv, AStar,1000)
     end = process(cSpace, start[:-number+1], finish[:-number+1])
     while end == False:
         print 'trying again'
-        cSpace = obtain_random_points(asv, 1000*i, obstacles, AStar)
+        cSpace = obtain_random_points(asv, AStar, 1000*i)
         end = process(cSpace, start[:-number+1], finish[:-number+1])
         i+=1
     display_path(output, end)
