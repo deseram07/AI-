@@ -1,9 +1,5 @@
 import sys
-# import numpy as np
-# import math
 from utility import *
-import heapq
-# import cv2
 
             
 # gets distance from one sample configuration to another
@@ -41,7 +37,23 @@ def display_path(outputfile, sample):
     # outputs the path with the coordinates of each configuration separated by spaces
     xp = []
     yp = []
-    for x in range(len(path)):
+    lines = 0
+    previous = path[0]
+    data = ''
+    for i in previous:
+        data += str(i) + " "
+        lines += 1
+    data += "\n"
+        
+    for x in range(1,len(path)):
+        current = path[x]
+        move = interpolate(current, previous)
+        previous = current
+        for coord in move:
+            for i in coord:
+                data += str(i) + " "
+                lines += 1
+            data += "\n"
         if debug:
             for i in range(len(path[x])/2):
                 xp.append(1000.0 * path[x][i*2])
@@ -57,7 +69,9 @@ def display_path(outputfile, sample):
             py.show()
             xp = []
             yp = []
-        outputfile.write(' '.join(map(str, path[x])))
+    length = str(lines) + ' ' + "52/n"
+    text = length + data
+    outputfile.write(text)
         
 # returns the estimated cost to destination from current position
 def get_h(sample):

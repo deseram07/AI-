@@ -325,6 +325,7 @@ def interpolate(current, previous):
     moves = []
     move = []
     x = True
+    print current,previous
     while True:
         if current == previous:
             break
@@ -333,17 +334,17 @@ def interpolate(current, previous):
                 i =index * 2
             else:
                 i =(index * 2) + 1
-            if current[i] != previous[i]:
-                previous[i] = previous[i] + (np.sign(current[i] - previous[i]) * 1)
+            if round(current[i],3) != round(previous[i],3):
+                previous[i] = round(previous[i] + (np.sign(current[i] - previous[i]) * 0.001),3)
         if x:
             x = False
         else:
             x = True
+#        print previous
         for i in previous:
             move.append(i)
         moves.append(move)
         move = []
-
     return moves
             
         
