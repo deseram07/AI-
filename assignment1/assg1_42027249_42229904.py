@@ -26,6 +26,7 @@ def get_decimal(coords):
 
 # output the path to file
 def display_path(outputfile, sample):
+
 #     print 'path found'
     path = []
 #     print AStar.start.coords

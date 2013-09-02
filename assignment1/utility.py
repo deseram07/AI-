@@ -319,3 +319,24 @@ def centroid_angle(coords):
     cy = sumy / num
 #     angle = angles(Point(coords[0] + 1, coords[1]), Point(coords[0], coords[1]), Point(cx, cy))
     return cx, cy #, angle
+
+def interpolate(current, previous):
+#    assuming that the coordinates provided at x0,y0,x1,y1,x2,y2
+    moves = []
+    move = []
+    while True:
+        if current == previous:
+            break
+        for i in range(len(current)):
+            if current[i] != previous[i]:
+                previous[i] = previous[i] + np.sign(current[i] - previous[i])
+                move.append(previous[i])
+            else:
+                move.append(previous[i])
+        moves.append(move)
+        move = []
+    return moves
+            
+        
+        
+        
