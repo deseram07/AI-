@@ -189,7 +189,7 @@ def check_coordinates(lengths, angles, asv, AStar, rotate, shift):
         coordinate.append([x, y])
     
     if check1(coordinate, asv):
-        print coordinate
+        
         shift = Shift(coordinate, shift)
         coordinate = Rotate2D(shift, rotate, shift[0])
 #         print coordinate
@@ -346,8 +346,6 @@ def obtain_random_points(asv, AStar, n=5):
 
             sample = []
             count += 1
-            print points
-            sys.exit()
     print "Finished sampling"
     return points
 
@@ -445,13 +443,15 @@ def interpolate2(cur, prev):
     current = cur[:]
     previous = prev[:]
     moves = []
+    move = None
     
     while current != previous:
         for i in range(len(current)):
-            if previous[i] != current[i]:
-                previous[i] = previous[i] - (np.sign(current[i] - previous[i]) * 0.001)
-        print moves
-        moves.append(current)
+            if round(previous[i],3) != round(current[i],3):
+                previous[i] = round(previous[i] + (np.sign(current[i] - previous[i])) * 0.001,3)
+        print previous
+        move = previous[:]
+        moves.append(move)
     return moves
 
 def extract_points(new, origin, AStar,cSpace):

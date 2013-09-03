@@ -12,3 +12,6 @@ obtain_random_points(asv)
 
 from utility import *
 interpolate([0.449, 0.366, 0.499, 0.366, 0.465, 0.421], [0.5, 0.5, 0.275, 0.4, 0.3, 0.35])
+
+from utility import *
+interpolate2([0.238, 0.351, 0.211, 0.419, 0.173, 0.372],[0.238, 0.351, 0.211, 0.419, 0.173, 0.372]) 

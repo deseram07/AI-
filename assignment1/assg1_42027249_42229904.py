@@ -25,7 +25,7 @@ def get_decimal(coords):
     return points
 
 # output the path to file
-def display_path(outputfile, sample):
+def display_path(outputfile, sample, init_coord):
 
     print 'path found'
     path = []
@@ -43,7 +43,8 @@ def display_path(outputfile, sample):
         path.insert(0,some)
         some = []
         sample = sample.parent
-
+        
+    prev = init_coord
     for i in path:
         for j in i:
             for point in j:
@@ -227,7 +228,7 @@ def main(inputfile, outputfile):
         cSpace = obtain_random_points(asv, AStar, 1000)
         end = process(cSpace, start[:-number+1], finish[:-number+1], asv[0].direction)
         i+=1
-    display_path(output, end)
+    display_path(output, end, start)
     output.close()
     file.close()
 
