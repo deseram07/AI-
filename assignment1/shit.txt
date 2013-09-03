@@ -14,4 +14,20 @@ from utility import *
 interpolate([0.449, 0.366, 0.499, 0.366, 0.465, 0.421], [0.5, 0.5, 0.275, 0.4, 0.3, 0.35])
 
 from utility import *
-interpolate2([0.238, 0.351, 0.211, 0.419, 0.173, 0.372],[0.238, 0.351, 0.211, 0.419, 0.173, 0.372]) 
+interpolate2([0.238, 0.351, 0.211, 0.419, 0.173, 0.372],[0.238, 0.351, 0.211, 0.419, 0.173, 0.372])
+
+
+def interpolate2(cur, prev):
+    current = cur[:]
+    previous = prev[:]
+    moves = []
+    move = None
+    
+    while current != previous:
+        for i in range(len(current)):
+            if round(previous[i],3) != round(current[i],3):
+                previous[i] = round(previous[i] + (np.sign(current[i] - previous[i])) * 0.001,3)
+        print previous
+        move = previous[:]
+        moves.append(move)
+    return moves 

@@ -25,11 +25,13 @@ def get_decimal(coords):
     return points
 
 # output the path to file
-def display_path(outputfile, sample):
+def display_path(outputfile, sample, start, finish):
 
     print 'path found'
     path = []
     some = []
+    temp = []
+    prev = []
     data = ''
     lines = 0
 #     print AStar.start.coords
@@ -38,20 +40,42 @@ def display_path(outputfile, sample):
         for j in sample.points:
             lines += 1
             coords = get_decimal(j)
-            print coords
             some.append(coords)
         path.insert(0,some)
         some = []
         sample = sample.parent
-
+    
+    for i in range(len(start) - 2):
+        num = float(start[i])
+        num /= 1000.0
+        prev.append(num)
+        
     for i in path:
         for j in i:
+            print j
+            sys.exit()
             for point in j:
                 point = round(point,3)
-    
-                data += str(point)
-                data += ' '
-            data += '\n'
+                temp.append(point)
+            if temp != prev:
+                moves = interpolate2(temp,prev)
+                for lists in moves:
+                    for p in lists:
+                        data += str(point)
+                        data += ' '
+                    data += '\n'
+                    lines += 1
+                
+            else:
+                for p in temp:
+                    data += str(point)
+                    data += ' '
+                data += '\n'
+                lines += 1
+            prev = []
+            prev = temp[:]
+            temp = []
+
     length = str(lines) + ' ' + str(float(lines)/1000) + "\n"
     text = length + data
     outputfile.write(text)
@@ -126,7 +150,6 @@ def points_to_polar(coords, dir):
 def process(cSpace, start, dest, dir):
     array = [[[] for x in range(AStar.width / AStar.grid)] for y in range(AStar.width / AStar.grid)]
     # map samples to their positions in grid space via their centroid positions
-#     print cSpace
     for i in cSpace:
         array[int(i[1]) / AStar.grid][int(i[0]) / AStar.grid].append(Sample(i))
     
@@ -147,9 +170,6 @@ def process(cSpace, start, dest, dir):
     while len(AStar.op):
         # get sample from the open list based on samples f value
         f, sample = heapq.heappop(AStar.op)
-#        if m == 2:
-#            sys.exit()
-#        m += 1
         AStar.cl.add(sample)
         for i in range(len(sample.coords)):
             if sample.coords[i] != AStar.end.coords[i]:
@@ -162,16 +182,9 @@ def process(cSpace, start, dest, dir):
         
         for c in adj_samples:
             for d in c:
-#                print '1'
-#                print sample.coords
                 if int(sample.coords[0]) != int(d.coords[0]) and int(sample.coords[1]) != int(d.coords[1]):
             ########## INTERPOLATE AND CHECK CONNECTION
-#                    print'2'
-#                    print sample.coords
-#                    print d.coords, sample.coords
                     [steps, g] = extract_points(d.coords, sample.coords, AStar,cSpace)
-#                    print '3'
-#                    print sample.coords
                     if g != -1:
                         if d not in AStar.cl:
                             if (d.f, d) in AStar.op:
@@ -180,8 +193,6 @@ def process(cSpace, start, dest, dir):
                             else:
                                 update_sample(d, sample, g, steps)
                                 heapq.heappush(AStar.op, (d.f, d))
-#                            print '4'
-#                            print sample.coords
     return False             
         
 
@@ -227,7 +238,7 @@ def main(inputfile, outputfile):
         cSpace = obtain_random_points(asv, AStar, 1000)
         end = process(cSpace, start[:-number+1], finish[:-number+1], asv[0].direction)
         i+=1
-    display_path(output, end)
+    display_path(output, end, start, finish)
     output.close()
     file.close()
 

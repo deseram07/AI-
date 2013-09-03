@@ -418,6 +418,20 @@ def check_collision(AStar, asv):
                         return True
     return False
 
+def interpolate2(cur, prev):
+    current = cur[:]
+    previous = prev[:]
+    moves = []
+    move = None
+    
+    while current != previous:
+        for i in range(len(current)):
+            if round(previous[i],3) != round(current[i],3):
+                previous[i] = round(previous[i] + (np.sign(current[i] - previous[i])) * 0.001,3)
+        print previous
+        move = previous[:]
+        moves.append(move)
+    return moves 
 
 def interpolate(cur, prev):
     current = cur[:]
@@ -430,7 +444,6 @@ def interpolate(cur, prev):
     moves = []
     move = []
     x = True
-#    print current,previous
     while True:
         if current == previous:
             break
@@ -485,7 +498,6 @@ def extract_points(new, origin, AStar,cSpace):
         prev_config[2] = prev_config[2] + delta_gamma
         for i in range(len(prev_config[4])):
             prev_config[4][i] = prev_config[4][i] + delta_angles[i]
-#        print 'second'
         steps.append(obtain_coordinates(prev_config,AStar))
         if steps[-1] == -1:
             return [None,-1]
