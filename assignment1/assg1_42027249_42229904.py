@@ -177,7 +177,7 @@ def process(cSpace, start, dest, dir):
     
     finish = points_to_polar(dest, dir)  
     AStar.end = Sample(finish)
-    array[AStar.end.coords[1] / AStar.grid][AStar.end.coords[0] / AStar.grid].append(AStar.end)
+    array[int(AStar.end.coords[1]) / AStar.grid][int(AStar.end.coords[0]) / AStar.grid].append(AStar.end)
     
     # create start position sample
     begin = points_to_polar(start, dir)
