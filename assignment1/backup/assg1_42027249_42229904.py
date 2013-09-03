@@ -45,11 +45,12 @@ def display_path(outputfile, sample, start, finish):
         some = []
         sample = sample.parent
     
-    for i in range(len(start) - 2):
-        num = float(start[i])
-        num /= 1000.0
+    print start
+    for i in range(len(start)):
+        num = float(start[i])/1000.0
+#         num /= 1000.0
         prev.append(num)
-        
+    print prev    
     for i in path:
         for j in i:
             print j
@@ -238,7 +239,7 @@ def main(inputfile, outputfile):
         cSpace = obtain_random_points(asv, AStar, 1000)
         end = process(cSpace, start[:-number+1], finish[:-number+1], asv[0].direction)
         i+=1
-    display_path(output, end, start, finish)
+    display_path(output, end, start[:-number+1], finish[:-number+1])
     output.close()
     file.close()
 
