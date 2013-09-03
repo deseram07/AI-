@@ -428,7 +428,7 @@ def interpolate2(cur, prev):
         for i in range(len(current)):
             if round(previous[i],3) != round(current[i],3):
                 previous[i] = round(previous[i] + (np.sign(current[i] - previous[i])) * 0.001,3)
-        print previous
+#        print previous
         move = previous[:]
         moves.append(move)
     return moves 

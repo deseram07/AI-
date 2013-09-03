@@ -45,37 +45,47 @@ def display_path(outputfile, sample, start, finish):
         some = []
         sample = sample.parent
     
-    print start
-    for i in range(len(start)):
-        num = float(start[i])/1000.0
-#         num /= 1000.0
-        prev.append(num)
-    print prev    
+#    print start
+#    for i in range(len(start)):
+#        num = float(start[i])/1000.0
+##         num /= 1000.0
+#        prev.append(num)
+#    print prev    
     for i in path:
         for j in i:
-            print j
-            sys.exit()
+#            print j
+#            sys.exit()
             for point in j:
                 point = round(point,3)
-                temp.append(point)
-            if temp != prev:
-                moves = interpolate2(temp,prev)
-                for lists in moves:
-                    for p in lists:
-                        data += str(point)
-                        data += ' '
-                    data += '\n'
-                    lines += 1
+                data += str(point)
+                data += ' '
+            data += '\n'
+#            lines += 1
                 
-            else:
-                for p in temp:
-                    data += str(point)
-                    data += ' '
-                data += '\n'
-                lines += 1
-            prev = []
-            prev = temp[:]
-            temp = []
+                
+#                temp.append(point)
+#                
+#                
+#                print temp
+#                print prev
+#            if temp != prev:
+#                moves = interpolate2(temp,prev)
+#                for lists in moves:
+#                    for p in lists:
+#                        data += str(point)
+#                        data += ' '
+#                    data += '\n'
+#                    lines += 1
+#                
+#            else:
+#                for p in temp:
+#                    data += str(point)
+#                    data += ' '
+#                data += '\n'
+#                lines += 1
+#            prev = []
+#            prev = temp[:]
+#            temp = []
 
     length = str(lines) + ' ' + str(float(lines)/1000) + "\n"
     text = length + data
