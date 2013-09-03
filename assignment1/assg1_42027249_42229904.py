@@ -150,7 +150,7 @@ def get_adj(array, sample):
 
 
 def points_to_polar(coords, dir):
-    polar = [coords[0], coords[1]]
+    polar = [float(coords[0]), float(coords[1])]
     rotate = angles(Point(coords[0]+1, coords[1]), Point(coords[0],coords[1]), Point(coords[2],coords[3]))
     if dir < 0:
         rotate = 2*np.pi - rotate
@@ -203,10 +203,10 @@ def process(cSpace, start, dest, dir):
                 for i in range(2):
                     if int(sample.coords[i]) != int(d.coords[i]):
                 ########## INTERPOLATE AND CHECK CONNECTION
-#                        print d.coords, sample.coords
-#                        print '\n'
+                        print d.coords, sample.coords
+                        print '\n'
                         [steps, g] = extract_points(d.coords, sample.coords, AStar,cSpace)
-#                        print g
+                        print g
                         if g != -1:
                             if d not in AStar.cl:
                                 if (d.f, d) in AStar.op:

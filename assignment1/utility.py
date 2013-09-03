@@ -197,8 +197,8 @@ def check_coordinates(lengths, angles, asv, AStar, rotate, shift):
     if check1(coordinate, asv):
         
         shift = Shift(coordinate, shift)
-        coordinate = Rotate2D(shift, rotate, shift)
-        print coordinate
+        coordinate = Rotate2D(shift, rotate, shift[0])
+#         print coordinate
         return check2(coordinate, asv, AStar)
 #         return True
     else:
