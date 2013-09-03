@@ -23,7 +23,6 @@ def get_decimal(coords):
         temp.append(coords[i][1])
     for j in temp:
         points.append(float(j)/1000.0)
-    print points
     return points
 
 # output the path to file
@@ -37,13 +36,13 @@ def display_path(outputfile, sample):
     # creates path from the end to the start inserting into the beginning 
     while sample.parent is not AStar.start:
         for j in sample.points:
-            coords = get_decimal(j)
-                
-#        coords = get_decimal(sample.points)
-            path.insert(0, coords)
-#        ccxx.append(sample.cx)
-#        ccyy.append(sample.cy)
+            print j
+#            coords = get_decimal(j)
+
+#            path.insert(0, coords)
+
         sample = sample.parent
+
     # inserts the start configuration into the path
 #    for i in range(len(ccxx)-1):
 #        xxx = ccxx[i+1]-ccxx[i]
@@ -70,7 +69,7 @@ def display_path(outputfile, sample):
         
     for x in range(1,len(path)):
 #        current = path[x]
-        print path[x]
+#        print path[x]
 #        move = interpolate(current, previous)
 #        previous = current
 #        for i in pa
@@ -106,7 +105,7 @@ def display_path(outputfile, sample):
 def dist(sample, other):
     distx = abs(sample.coords[0] - other.coords[0])
     disty = abs(sample.coords[1] - other.coords[1])
-    return distx + disty
+    return distx+ disty
 
     
 # returns the estimated cost to destination from current position
@@ -174,7 +173,7 @@ def process(cSpace, start, dest, dir):
     # map samples to their positions in grid space via their centroid positions
 #     print cSpace
     for i in cSpace:
-        array[i[1] / AStar.grid][i[0] / AStar.grid].append(Sample(i))
+        array[int(i[1]) / AStar.grid][int(i[0]) / AStar.grid].append(Sample(i))
     
     finish = points_to_polar(dest, dir)  
     AStar.end = Sample(finish)
@@ -206,7 +205,7 @@ def process(cSpace, start, dest, dir):
                 ########## INTERPOLATE AND CHECK CONNECTION
 #                        print d.coords, sample.coords
 #                        print '\n'
-                        [steps, g] = extract_points(d.coords, sample.coords, AStar)
+                        [steps, g] = extract_points(d.coords, sample.coords, AStar,cSpace)
 #                        print g
                         if g != -1:
                             if d not in AStar.cl:
@@ -258,7 +257,7 @@ def main(inputfile, outputfile):
         AStar.obstacle_x.append([x[0],x[-1]]) #[[x_low,x_high],[x1_low,x1_high]]
         AStar.obstacle_y.append([y[0],y[-1]])
     i = 2
-    cSpace = obtain_random_points(asv, AStar,500)
+    cSpace = obtain_random_points(asv, AStar,5000)
     end = process(cSpace, start[:-number+1], finish[:-number+1], asv[0].direction)
     while end == False:
         print 'trying again'

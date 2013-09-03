@@ -180,6 +180,8 @@ def random_length_angle(asv):
 def check_coordinates(lengths, angles, asv, AStar, rotate, shift):
     init_coord = [0, 0]
     coordinate = []
+    xxx = []
+    yyy = []
     
 #    first find the points with initial boom on x axis with 0 degree rotation
     coordinate.append(init_coord)
@@ -193,8 +195,10 @@ def check_coordinates(lengths, angles, asv, AStar, rotate, shift):
         coordinate.append([x, y])
     
     if check1(coordinate, asv):
+        
         shift = Shift(coordinate, shift)
-        coordinate = Rotate2D(shift, rotate, shift[0])
+        coordinate = Rotate2D(shift, rotate, shift)
+        print coordinate
         return check2(coordinate, asv, AStar)
 #         return True
     else:
@@ -207,6 +211,7 @@ def obtain_coordinates(point,AStar):
     yyy = []
     shift = [shift_x,shift_y]
     coordinate = []
+    
     coordinate.append(init_coord)
     coordinate.append([init_coord[0] + lengths[0], init_coord[1]])
     for i in range(1,len(lengths)):
@@ -274,19 +279,16 @@ def dup_check2(coordinate, AStar):
     
     obstacle_x = AStar.obstacle_x
     obstacle_y = AStar.obstacle_y
-    
+#    print coordinate
     if debug:
         print "obstacle_x = ", obstacle_x
         print "obstacle_y = ", obstacle_y
         print "Coordinate checked = ", coordinate
           
     # boom in obstacle (True for collision)
-#    print "checking edges"
-#    print coordinate
     if dup_check_collision(AStar,coordinate) == False:  ##!!!!! need to make a function without the asv but coordinate
         for i in range(len(coordinate)):
             if 0 <= coordinate[i][0] <= 1000 and  0 <= coordinate[i][1] <= 1000:
-#                print "out of grid"
                 # coord not in obstacle
                 for o in range(len(obstacle_x)):
                     if obstacle_x[o][0] <= coordinate[i][0] and obstacle_x[o][1] >= coordinate[i][0] and obstacle_y[o][0] <= coordinate[i][1] and obstacle_y[o][1] >= coordinate[i][1]:
@@ -353,7 +355,7 @@ def obtain_random_points(asv, AStar, n=5):
         
         if check_coordinates(lengths, angles, asv, AStar, rotate, shift):
             for i in shift:
-                sample.append(int(i))
+                sample.append(i)
             sample.append(rotate)
             sample.append(lengths)
             sample.append(angles[:-2])
@@ -477,7 +479,7 @@ def interpolate(current, previous):
         move = []
     return moves
 
-def extract_points(new, origin, AStar):
+def extract_points(new, origin, AStar,cSpace):
     
     steps = []
     index = 0
@@ -498,7 +500,55 @@ def extract_points(new, origin, AStar):
         delta_angles.append((new[4][i] - origin[4][i])/float(No_step))
 
     prev_config = origin
+    
     steps.append(obtain_coordinates(prev_config,AStar))
+#    print "first"
+    if steps[-1] == -1:
+#        print "shit"
+        for i in cSpace:
+            if prev_config == i:
+                print i
+                coordinate = []
+                xxx = []
+                yyy = []
+                init_coord = [0,0]
+                [shift_x,shift_y,rotate,lengths,angles] = prev_config
+                shift = [shift_x,shift_y]
+                coordinate.append(init_coord)
+                coordinate.append([init_coord[0] + lengths[0], init_coord[1]])
+                for i in range(1,len(lengths)):
+                    [x, y] = coordinate[-1]
+                    angle = angles[i-1]
+                    length = lengths[i]
+                    x = x + (length * np.cos(angle))
+                    y = y + (length * np.sin(angle))
+                    coordinate.append([x, y])
+                
+                for i in coordinate:
+                    xxx.append(i[0])
+                    yyy.append(i[1])
+                py.plot(xxx,yyy,'+-')
+                py.show()
+                xxx = []
+                yyy = []
+                
+                shift = Shift(coordinate, shift)
+                for i in shift:
+                    xxx.append(i[0])
+                    yyy.append(i[1])
+                py.plot(xxx,yyy,'+-')
+                py.show()
+                xxx = []
+                yyy = []
+            
+                coordinate = Rotate2D(shift, rotate, shift[0])
+                for i in coordinate:
+                    xxx.append(i[0])
+                    yyy.append(i[1])
+                py.plot(xxx,yyy,'+-')
+                py.show()
+                sys.exit(1)
+        return [None,-1]
     
     for index in range(No_step):
         prev_config[0] = route[index][0]*1000.0
@@ -506,6 +556,7 @@ def extract_points(new, origin, AStar):
         prev_config[2] = prev_config[2] + delta_gamma
         for i in range(len(prev_config[4])):
             prev_config[4][i] = prev_config[4][i] + delta_angles[i]
+#        print 'second'
         steps.append(obtain_coordinates(prev_config,AStar))
         if steps[-1] == -1:
             return [None,-1]
