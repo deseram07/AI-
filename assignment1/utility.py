@@ -6,7 +6,6 @@ import random
 import copy
 import pylab as py
 
-debug = 0
 
 # creating an ASV
 class ASV:
@@ -267,11 +266,6 @@ def dup_check2(coordinate, AStar):
     
     obstacle_x = AStar.obstacle_x
     obstacle_y = AStar.obstacle_y
-#    print coordinate
-    if debug:
-        print "obstacle_x = ", obstacle_x
-        print "obstacle_y = ", obstacle_y
-        print "Coordinate checked = ", coordinate
           
     # boom in obstacle (True for collision)
     if dup_check_collision(AStar,coordinate) == False:  ##!!!!! need to make a function without the asv but coordinate
@@ -349,13 +343,7 @@ def obtain_random_points(asv, AStar, n=5):
             sample.append(angles[:-2])
 
             points.append(sample)
-            if debug:
-                for i in range(len(oxs)):
-                    py.plot(oxs[i], oys[i], '-+')
-                py.plot(x, y, '-+')
-                py.show()
-                x = []
-                y = []
+
             sample = []
             count += 1
     print "Finished sampling"
