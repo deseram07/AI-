@@ -200,7 +200,7 @@ def check_coordinates(lengths, angles, asv, AStar, rotate, shift):
     else:
         return False
     
-def obtain_coordintates(shift_x,shift_y,rotate,lengths,angles,AStar):
+def obtain_coordinates(shift_x,shift_y,rotate,lengths,angles,AStar):
     init_coord = [0,0]
     shift = [shift_x,shift_y]
     coordinate = []
@@ -449,23 +449,35 @@ def interpolate(current, previous):
 
 def extract_points(new, origin, AStar):
     
-    prev_step = []
-    new_step = []
     steps = []
+    index = 0
     
-    route = interpolate([new[0],new[1]],[origin[0],origin[1]])
+    route = interpolate([new[0]/1000.0,new[1]/1000.0],[origin[0]/1000.0,origin[1]/1000.0])
     for point in route:
         for o in range(len(AStar.obstacle_x)):
             if AStar.obstacle_x[o][0] <= point[0] and AStar.obstacle_x[o][1] >= point[0] and AStar.obstacle_y[o][0] <= point[1] and AStar.obstacle_y[o][1] >= point[1]:
                 return -1
 
-    No_step = abs(new[0] - origin[0]) - (new[1] - origin[1])
+    No_step = len(route)
     delta_gamma = (new[2] - origin[2])/No_step
     delta_angles = []
     
     for i in range(len(new[4])):
         delta_angles.append((new[4][i] - origin[4][i])/float(No_step))
 
+    prev_config = origin
+    steps.append(obtain_coordinates(prev_config))
     
-    
+    while prev_config != new:
+        prev_config[0] = route[index][0]*1000.0
+        prev_config[1] = route[index][1]*1000.0
+        prev_config[2] = prev_config[2] + delta_gamma
+        for i in range(len(prev_config[4])):
+            prev_config[4][i] = prev_config[4][i] + delta_angles[i]
+        steps.append[obtain_coordinates(prev_config)]
+        if steps[-1] == -1:
+            return -1
+        index += 1
+    steps.append(new)
+    return steps
         
