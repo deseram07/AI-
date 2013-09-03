@@ -23,12 +23,12 @@ class ASV:
 
 # sample class
 class Sample:
-    def __init__(self, coordinates, cx, cy, x, y):#, angle):
+    def __init__(self, coordinates):#, cx, cy, x, y):#, angle):
         self.coords = coordinates
-        self.cx = cx
-        self.cy = cy
-        self.x = x
-        self.y = y
+#         self.cx = cx
+#         self.cy = cy
+#         self.x = x
+#         self.y = y
         self.points = None
 #         self.angle = angle
         self.parent = None
@@ -46,8 +46,8 @@ class Point:
 class Astar:
     def __init__(self):
         self.op = []
-        self.obstacle_x = None
-        self.obstacle_y = None
+        self.obstacle_x = []
+        self.obstacle_y = []
         heapq.heapify(self.op)
         self.cl = set()
         self.samples = []
@@ -200,7 +200,8 @@ def check_coordinates(lengths, angles, asv, AStar, rotate, shift):
     else:
         return False
     
-def obtain_coordinates(shift_x,shift_y,rotate,lengths,angles,AStar):
+def obtain_coordinates(point,AStar):
+    [shift_x,shift_y,rotate,lengths,angles] = point
     init_coord = [0,0]
     shift = [shift_x,shift_y]
     coordinate = []
@@ -258,7 +259,7 @@ def dup_check2(coordinate, AStar):
           
     # boom in obstacle (True for collision)
     if dup_check_collision(AStar,coordinate) == False:  ##!!!!! need to make a function without the asv but coordinate
-        for i in range(len(coordinate)):
+        for i in range(len(coordinate)/2):
             if 0 <= coordinate[i*2] <= 1000 and  0 <= coordinate[i*2 + 1] <= 1000:
                 # coord not in obstacle
                 for o in range(len(obstacle_x)):
@@ -326,7 +327,7 @@ def obtain_random_points(asv, AStar, n=5):
         
         if check_coordinates(lengths, angles, asv, AStar, rotate, shift):
             for i in shift:
-                sample.append(i)
+                sample.append(int(i))
             sample.append(rotate)
             sample.append(lengths)
             sample.append(angles[:-2])
@@ -342,7 +343,7 @@ def obtain_random_points(asv, AStar, n=5):
             sample = []
             count += 1
     print "Finished sampling"
-    print points
+    return points
 
 def constrained_sum_sample_pos(n, total):
     """Return a randomly chosen list of n positive integers summing to total.
@@ -354,15 +355,16 @@ def constrained_sum_sample_pos(n, total):
 def dup_check_collision(AStar, coordinates):
     corners = []
     for k in AStar.obstacle_x:
-        minx = AStar.obstacle_x[0]
-        miny = AStar.obstacle_y[0]
-        maxx = AStar.obstacle_x[1]
-        maxy = AStar.obstacle_y[1]
-        corners.append([Point(minx,miny), Point(minx,maxy), Point(maxx,miny), Point(maxx,maxy)])
+        for l in AStar.obstacle_y:
+            minx = k[0]
+            miny = l[0]
+            maxx = k[1]
+            maxy = l[1]
+            corners.append([Point(minx,miny), Point(minx,maxy), Point(maxx,miny), Point(maxx,maxy)])
         
     for i in range(len(coordinates)/2 - 1):
         for k in corners:
-            for l in range(len(k)):
+            for l in range(len(k)-1):
                 A = Point(coordinates[i*2], coordinates[i*2+1])
                 B = Point(coordinates[(i + 1)*2], coordinates[(i + 1)*2+1])
                 C = k[l]
@@ -378,15 +380,17 @@ def dup_check_collision(AStar, coordinates):
 def check_collision(AStar, asv):
     corners = []
     for k in AStar.obstacle_x:
-        minx = AStar.obstacle_x[0]
-        miny = AStar.obstacle_y[0]
-        maxx = AStar.obstacle_x[1]
-        maxy = AStar.obstacle_y[1]
-        corners.append([Point(minx,miny), Point(minx,maxy), Point(maxx,miny), Point(maxx,maxy)])
+        for l in AStar.obstacle_y:
+            minx = k[0]
+            miny = l[0]
+            maxx = k[1]
+            maxy = l[1]
+            corners.append([Point(minx,miny), Point(minx,maxy), Point(maxx,miny), Point(maxx,maxy)])
+            
     for i in range(len(asv) - 1):
         for j in AStar.obstacle_x:
             for k in corners:
-                for l in range(len(k)):
+                for l in range(len(k)-1):
                     A = Point(asv[i].x, asv[i].y)
                     B = Point(asv[i + 1].x, asv[i + 1].y)
                     C = k[l]
@@ -466,7 +470,7 @@ def extract_points(new, origin, AStar):
         delta_angles.append((new[4][i] - origin[4][i])/float(No_step))
 
     prev_config = origin
-    steps.append(obtain_coordinates(prev_config))
+    steps.append(obtain_coordinates(prev_config,AStar))
     
     while prev_config != new:
         prev_config[0] = route[index][0]*1000.0
@@ -474,7 +478,7 @@ def extract_points(new, origin, AStar):
         prev_config[2] = prev_config[2] + delta_gamma
         for i in range(len(prev_config[4])):
             prev_config[4][i] = prev_config[4][i] + delta_angles[i]
-        steps.append[obtain_coordinates(prev_config)]
+        steps.append[obtain_coordinates(prev_config,AStar)]
         if steps[-1] == -1:
             return -1
         index += 1

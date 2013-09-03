@@ -90,20 +90,26 @@ def display_path(outputfile, sample):
     length = str(lines) + ' ' + "0.52\n"
     text = length + data
     outputfile.write(text)
-        
+    
+def dist(sample, other):
+    distx = abs(sample.coords[0] - other.coords[0])
+    disty = abs(sample.coords[1] - other.coords[1])
+    return distx + disty
+
+    
 # returns the estimated cost to destination from current position
 def get_h(sample):
-    dist = get_dist(sample, AStar.end)
+    h = dist(sample, AStar.end)
 #     (abs(sample.cx - AStar.end.cx) + abs(sample.cy - AStar.end.cy)) * 10 + abs(sample.angle - AStar.end.angle) / 10
-    return dist
+    return h
 
 # returns samples from a given location
 def get_samples(array, x, y):
     return array[y][x]
 
 # updates adjacent sample with details from current sample
-def update_sample(adj, sample):
-    adj.g = sample.g + get_dist(sample, adj)
+def update_sample(adj, sample, g):
+    adj.g = sample.g + g
     adj.h = get_h(adj)
     adj.parent = sample
     adj.f = adj.g + adj.h
@@ -113,42 +119,54 @@ def get_adj(array, sample):
     samples = []
     movex = [0]
     movey = [0]
+    x = sample.coords[0]/ AStar.grid
+    y = sample.coords[1]/ AStar.grid
     # checks where to get samples from
-    if sample.x < ((AStar.width / AStar.grid) - 1):
+    if x < ((AStar.width / AStar.grid) - 1):
         movex.append(1)
-    if sample.y > 0:
+    if y/ AStar.grid > 0:
         movey.append(-1)
-    if sample.x > 0:
+    if x/ AStar.grid > 0:
         movex.append(-1)
-    if sample.y < ((AStar.width / AStar.grid) - 1):
+    if y/ AStar.grid < ((AStar.width / AStar.grid) - 1):
         movey.append(1)
     # gets samples from available grid squares
     for i in movex:
         for j in movey:
-            samples.append(get_samples(array, sample.x + i, sample.y + j))
+            samples.append(get_samples(array, x + i, y + j))
     return samples
 
+
+def points_to_polar(coords, dir):
+    polar = [coords[0], coords[1]]
+    rotate = angles(Point(coords[0]+1, coords[1]), Point(coords[0],coords[1]), Point(coords[2],coords[3]))
+    if dir < 0:
+        rotate = 2*np.pi - rotate
+    angle = []
+    lengths = [boom_length(Point(coords[0],coords[1]),Point(coords[2],coords[3]))]
+    for i in range(len(coords)/2-2):
+        lengths.append(boom_length(Point(coords[(i+1)*2],coords[(i+1)*2+1]), Point(coords[(i+2)*2], coords[(i+2)*2+1])))
+        angle.append(angles(Point(coords[i*2], coords[i*2+1]), Point(coords[(i+1)*2],coords[(i+1)*2+1]), Point(coords[(i+2)*2],coords[(i+2)*2+1])))
+    polar.append(rotate)
+    polar.append(angle)
+    polar.append(lengths)
+    return polar 
+
 # A* search processing
-def process(cSpace, start, dest):
+def process(cSpace, start, dest, dir):
     array = [[[] for x in range(AStar.width / AStar.grid)] for y in range(AStar.width / AStar.grid)]
     # map samples to their positions in grid space via their centroid positions
+#     print cSpace
     for i in cSpace:
-#         print i
-#         cx, cy, angle = centroid_angle(i)
-        cx, cy = centroid_angle(i)
-        array[cy / AStar.grid][cx / AStar.grid].append(Sample(i, cx, cy, cx / AStar.grid, cy / AStar.grid))#, angle))
+        array[i[1] / AStar.grid][i[0] / AStar.grid].append(Sample(i))
     
-    # add end position to samples
-#     cx, cy, angle = centroid_angle(dest)
-    cx, cy = centroid_angle(dest)
-    print "dest = ",cx,cy, "\n", dest
-    AStar.end = Sample(dest, cx, cy, cx / AStar.grid, cy / AStar.grid)#, angle)
-    array[cy / AStar.grid][cx / AStar.grid].append(AStar.end)
+    finish = points_to_polar(dest, dir)  
+    AStar.end = Sample(finish)
+    array[AStar.end.coords[1] / AStar.grid][AStar.end.coords[0] / AStar.grid].append(AStar.end)
     
     # create start position sample
-#     cx, cy, angle = centroid_angle(start)
-    cx, cy = centroid_angle(start)
-    AStar.start = Sample(start, cx, cy, cx / AStar.grid, cy / AStar.grid)#, angle)
+    begin = points_to_polar(start, dir)
+    AStar.start = Sample(begin)
     AStar.start.h = get_h(AStar.start)
     AStar.start.f = AStar.start.g + AStar.start.f
     
@@ -161,28 +179,24 @@ def process(cSpace, start, dest):
         for i in range(len(sample.coords)):
             if sample.coords[i] != AStar.end.coords[i]:
                 break
-            elif i == len(sample.coords)-1:
+            elif i == len(sample.coords) - 1:
                 return sample
-        # check if it's the final position
-#         if sample.coords == AStar.end.coords:
-#             return sample
         # get samples which are near to the current
         adj_samples = get_adj(array, sample)
         for c in adj_samples:
             for d in c:
-#                check whether line between corresponding leader asv go through
-#                obstacle
-
-#                generate states between them
-#                    changing angle and moving
-                if d not in AStar.cl:
-                    if (d.f, d) in AStar.op:
-                        if d.g > (sample.g + get_dist(sample, d)):
+                ########## INTERPOLATE AND CHECK CONNECTION
+                g = extract_points(d.coords, sample.coords, AStar)
+                print g
+                if g != -1:
+                    if d not in AStar.cl:
+                        if (d.f, d) in AStar.op:
+                            if d.g > (sample.g + get_dist(sample, d)):
+                                update_sample(d, sample, g)
+                        else:
                             update_sample(d, sample)
-                    else:
-                        update_sample(d, sample)
-                        heapq.heappush(AStar.op, (d.f, d))
-    return False            
+                            heapq.heappush(AStar.op, (d.f, d))
+    return False             
         
 
 def main(inputfile, outputfile):
@@ -225,11 +239,11 @@ def main(inputfile, outputfile):
         AStar.obstacle_y.append([y[0],y[-1]])
     i = 2
     cSpace = obtain_random_points(asv, AStar,1000)
-    end = process(cSpace, start[:-number+1], finish[:-number+1])
+    end = process(cSpace, start[:-number+1], finish[:-number+1], asv[0].direction)
     while end == False:
         print 'trying again'
-        cSpace = obtain_random_points(asv, AStar, 1000*i)
-        end = process(cSpace, start[:-number+1], finish[:-number+1])
+        cSpace = obtain_random_points(asv, AStar, 1000)
+        end = process(cSpace, start[:-number+1], finish[:-number+1], asv[0].direction)
         i+=1
     display_path(output, end)
     output.close()
