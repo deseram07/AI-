@@ -29,8 +29,8 @@ class Sample:
 #         self.cy = cy
 #         self.x = x
 #         self.y = y
-        self.points = None
 #         self.angle = angle
+        self.points = []
         self.parent = None
         self.g = 0
         self.h = 0
@@ -52,7 +52,7 @@ class Astar:
         self.cl = set()
         self.samples = []
         self.width = 1000
-        self.grid = 10
+        self.grid = 100
         self.start = None
         self.end = None
 
@@ -117,7 +117,7 @@ def angles(start, middle, end):
     a = boom_length(middle, end)
     b = boom_length(start, middle)
     c = boom_length(start, end)
-    angle = math.degrees(math.acos((a ** 2 + b ** 2 - c ** 2) / (2 * a * b)))
+    angle = (math.acos((a ** 2 + b ** 2 - c ** 2) / (2 * a * b)))
     return angle
 
 # calculate area of asv shape
@@ -194,7 +194,7 @@ def check_coordinates(lengths, angles, asv, AStar, rotate, shift):
     
     if check1(coordinate, asv):
         shift = Shift(coordinate, shift)
-        coordinate = Rotate2D(shift, rotate)
+        coordinate = Rotate2D(shift, rotate, shift[0])
         return check2(coordinate, asv, AStar)
 #         return True
     else:
@@ -203,6 +203,8 @@ def check_coordinates(lengths, angles, asv, AStar, rotate, shift):
 def obtain_coordinates(point,AStar):
     [shift_x,shift_y,rotate,lengths,angles] = point
     init_coord = [0,0]
+    xxx = []
+    yyy = []
     shift = [shift_x,shift_y]
     coordinate = []
     coordinate.append(init_coord)
@@ -214,10 +216,31 @@ def obtain_coordinates(point,AStar):
         x = x + (length * np.cos(angle))
         y = y + (length * np.sin(angle))
         coordinate.append([x, y])
-        
-        shift = Shift(coordinate, shift)
-        coordinate = Rotate2D(shift, rotate)
-        return dup_check2(coordinate, AStar)
+    
+#    for i in coordinate:
+#        xxx.append(i[0])
+#        yyy.append(i[1])
+#    py.plot(xxx,yyy,'+-')
+#    py.show()
+#    xxx = []
+#    yyy = []
+    
+    shift = Shift(coordinate, shift)
+#    for i in shift:
+#        xxx.append(i[0])
+#        yyy.append(i[1])
+#    py.plot(xxx,yyy,'+-')
+#    py.show()
+#    xxx = []
+#    yyy = []
+
+    coordinate = Rotate2D(shift, rotate, shift[0])
+#    for i in coordinate:
+#        xxx.append(i[0])
+#        yyy.append(i[1])
+#    py.plot(xxx,yyy,'+-')
+#    py.show()
+    return dup_check2(coordinate, AStar)
         
 def check2(coordinate, asv, AStar):
     for coord, ASV in zip(coordinate, asv):
@@ -258,12 +281,15 @@ def dup_check2(coordinate, AStar):
         print "Coordinate checked = ", coordinate
           
     # boom in obstacle (True for collision)
+#    print "checking edges"
+#    print coordinate
     if dup_check_collision(AStar,coordinate) == False:  ##!!!!! need to make a function without the asv but coordinate
-        for i in range(len(coordinate)/2):
-            if 0 <= coordinate[i*2] <= 1000 and  0 <= coordinate[i*2 + 1] <= 1000:
+        for i in range(len(coordinate)):
+            if 0 <= coordinate[i][0] <= 1000 and  0 <= coordinate[i][1] <= 1000:
+#                print "out of grid"
                 # coord not in obstacle
                 for o in range(len(obstacle_x)):
-                    if obstacle_x[o][0] <= coordinate[i*2] and obstacle_x[o][1] >= coordinate[i*2] and obstacle_y[o][0] <= coordinate[i*2 + 1] and obstacle_y[o][1] >= coordinate[i*2 + 1]:
+                    if obstacle_x[o][0] <= coordinate[i][0] and obstacle_x[o][1] >= coordinate[i][0] and obstacle_y[o][0] <= coordinate[i][1] and obstacle_y[o][1] >= coordinate[i][1]:
                         return -1
             else:
                 return -1
@@ -430,7 +456,7 @@ def interpolate(current, previous):
     moves = []
     move = []
     x = True
-    print current,previous
+#    print current,previous
     while True:
         if current == previous:
             break
@@ -457,10 +483,12 @@ def extract_points(new, origin, AStar):
     index = 0
     
     route = interpolate([new[0]/1000.0,new[1]/1000.0],[origin[0]/1000.0,origin[1]/1000.0])
+#    print new,origin
+#    print route
     for point in route:
         for o in range(len(AStar.obstacle_x)):
             if AStar.obstacle_x[o][0] <= point[0] and AStar.obstacle_x[o][1] >= point[0] and AStar.obstacle_y[o][0] <= point[1] and AStar.obstacle_y[o][1] >= point[1]:
-                return -1
+                return [None,-1]
 
     No_step = len(route)
     delta_gamma = (new[2] - origin[2])/No_step
@@ -472,16 +500,14 @@ def extract_points(new, origin, AStar):
     prev_config = origin
     steps.append(obtain_coordinates(prev_config,AStar))
     
-    while prev_config != new:
+    for index in range(No_step):
         prev_config[0] = route[index][0]*1000.0
         prev_config[1] = route[index][1]*1000.0
         prev_config[2] = prev_config[2] + delta_gamma
         for i in range(len(prev_config[4])):
             prev_config[4][i] = prev_config[4][i] + delta_angles[i]
-        steps.append[obtain_coordinates(prev_config,AStar)]
+        steps.append(obtain_coordinates(prev_config,AStar))
         if steps[-1] == -1:
-            return -1
-        index += 1
-    steps.append(new)
-    return steps
+            return [None,-1]
+    return [steps,No_step]
         

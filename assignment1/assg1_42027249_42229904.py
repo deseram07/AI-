@@ -16,32 +16,42 @@ def get_dist(sample, other):
 # converts back to given workspace
 def get_decimal(coords):
     points = []
+    temp = []
+    print coords
     for i in range(len(coords)):
-        points.append(float(coords[i]) / 1000.0)
+        temp.append(coords[i][0])
+        temp.append(coords[i][1])
+    for j in temp:
+        points.append(float(j)/1000.0)
+    print points
     return points
 
 # output the path to file
 def display_path(outputfile, sample):
 
-#     print 'path found'
+    print 'path found'
     path = []
     ccxx = []
     ccyy = []
 #     print AStar.start.coords
     # creates path from the end to the start inserting into the beginning 
     while sample.parent is not AStar.start:
-        coords = get_decimal(sample.coords)
-        path.insert(0, coords)
-        ccxx.append(sample.cx)
-        ccyy.append(sample.cy)
+        for j in sample.points:
+            coords = get_decimal(j)
+                
+#        coords = get_decimal(sample.points)
+            path.insert(0, coords)
+#        ccxx.append(sample.cx)
+#        ccyy.append(sample.cy)
         sample = sample.parent
     # inserts the start configuration into the path
-    for i in range(len(ccxx)-1):
-        xxx = ccxx[i+1]-ccxx[i]
-        yyy = ccyy[i+1]-ccyy[i]
-        print np.sqrt(xxx**2 + yyy**2)
-    coords = get_decimal(AStar.start.coords)
-    path.insert(0, coords)
+#    for i in range(len(ccxx)-1):
+#        xxx = ccxx[i+1]-ccxx[i]
+#        yyy = ccyy[i+1]-ccyy[i]
+#        print np.sqrt(xxx**2 + yyy**2)
+#    coords = get_decimal(AStar.start.coords)
+#    path.insert(0, coords)
+#    print path
     # outputs the path with the coordinates of each configuration separated by spaces
     xp = []
     yp = []
@@ -59,19 +69,21 @@ def display_path(outputfile, sample):
     data += "\n"
         
     for x in range(1,len(path)):
-        current = path[x]
-        move = interpolate(current, previous)
-        previous = current
-        f = 0
-        for coord in move:
-            for i in coord:
-                f += 1
-                data += str(i)
-                if f != len(previous):
-                    data += " "
-            lines += 1
-            data += "\n"
-            f = 0
+#        current = path[x]
+        print path[x]
+#        move = interpolate(current, previous)
+#        previous = current
+#        for i in pa
+#        f = 0
+#        for coord in move:
+#            for i in coord:
+#                f += 1
+#                data += str(i)
+#                if f != len(previous):
+#                    data += " "
+#            lines += 1
+#            data += "\n"
+#            f = 0
         if debug:
             for i in range(len(path[x])/2):
                 xp.append(1000.0 * path[x][i*2])
@@ -89,7 +101,7 @@ def display_path(outputfile, sample):
             yp = []
     length = str(lines) + ' ' + "0.52\n"
     text = length + data
-    outputfile.write(text)
+#    outputfile.write(text)
     
 def dist(sample, other):
     distx = abs(sample.coords[0] - other.coords[0])
@@ -105,13 +117,14 @@ def get_h(sample):
 
 # returns samples from a given location
 def get_samples(array, x, y):
-    return array[y][x]
+    return array[int(y)][int(x)]
 
 # updates adjacent sample with details from current sample
-def update_sample(adj, sample, g):
+def update_sample(adj, sample, g, steps):
     adj.g = sample.g + g
     adj.h = get_h(adj)
     adj.parent = sample
+    adj.points = steps
     adj.f = adj.g + adj.h
     
 # get nearby samples based on centroid position
@@ -119,16 +132,16 @@ def get_adj(array, sample):
     samples = []
     movex = [0]
     movey = [0]
-    x = sample.coords[0]/ AStar.grid
-    y = sample.coords[1]/ AStar.grid
+    x = int(sample.coords[0]/ AStar.grid)
+    y = int(sample.coords[1]/ AStar.grid)
     # checks where to get samples from
     if x < ((AStar.width / AStar.grid) - 1):
         movex.append(1)
-    if y/ AStar.grid > 0:
+    if y > 0:
         movey.append(-1)
-    if x/ AStar.grid > 0:
+    if x > 0:
         movex.append(-1)
-    if y/ AStar.grid < ((AStar.width / AStar.grid) - 1):
+    if y < ((AStar.width / AStar.grid) - 1):
         movey.append(1)
     # gets samples from available grid squares
     for i in movex:
@@ -146,10 +159,13 @@ def points_to_polar(coords, dir):
     lengths = [boom_length(Point(coords[0],coords[1]),Point(coords[2],coords[3]))]
     for i in range(len(coords)/2-2):
         lengths.append(boom_length(Point(coords[(i+1)*2],coords[(i+1)*2+1]), Point(coords[(i+2)*2], coords[(i+2)*2+1])))
-        angle.append(angles(Point(coords[i*2], coords[i*2+1]), Point(coords[(i+1)*2],coords[(i+1)*2+1]), Point(coords[(i+2)*2],coords[(i+2)*2+1])))
+        if dir < 0:
+            angle.append(np.pi+angles(Point(coords[i*2], coords[i*2+1]), Point(coords[(i+1)*2],coords[(i+1)*2+1]), Point(coords[(i+2)*2],coords[(i+2)*2+1])))
+        else:
+            angle.append(np.pi-angles(Point(coords[i*2], coords[i*2+1]), Point(coords[(i+1)*2],coords[(i+1)*2+1]), Point(coords[(i+2)*2],coords[(i+2)*2+1])))
     polar.append(rotate)
-    polar.append(angle)
     polar.append(lengths)
+    polar.append(angle)
     return polar 
 
 # A* search processing
@@ -185,17 +201,21 @@ def process(cSpace, start, dest, dir):
         adj_samples = get_adj(array, sample)
         for c in adj_samples:
             for d in c:
+                for i in range(2):
+                    if int(sample.coords[i]) != int(d.coords[i]):
                 ########## INTERPOLATE AND CHECK CONNECTION
-                g = extract_points(d.coords, sample.coords, AStar)
-                print g
-                if g != -1:
-                    if d not in AStar.cl:
-                        if (d.f, d) in AStar.op:
-                            if d.g > (sample.g + get_dist(sample, d)):
-                                update_sample(d, sample, g)
-                        else:
-                            update_sample(d, sample)
-                            heapq.heappush(AStar.op, (d.f, d))
+#                        print d.coords, sample.coords
+#                        print '\n'
+                        [steps, g] = extract_points(d.coords, sample.coords, AStar)
+#                        print g
+                        if g != -1:
+                            if d not in AStar.cl:
+                                if (d.f, d) in AStar.op:
+                                    if d.g > (sample.g + g):
+                                        update_sample(d, sample, g, steps)
+                                else:
+                                    update_sample(d, sample, g, steps)
+                                    heapq.heappush(AStar.op, (d.f, d))
     return False             
         
 
@@ -238,7 +258,7 @@ def main(inputfile, outputfile):
         AStar.obstacle_x.append([x[0],x[-1]]) #[[x_low,x_high],[x1_low,x1_high]]
         AStar.obstacle_y.append([y[0],y[-1]])
     i = 2
-    cSpace = obtain_random_points(asv, AStar,1000)
+    cSpace = obtain_random_points(asv, AStar,500)
     end = process(cSpace, start[:-number+1], finish[:-number+1], asv[0].direction)
     while end == False:
         print 'trying again'
