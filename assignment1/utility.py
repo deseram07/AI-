@@ -3,7 +3,7 @@ import numpy as np
 import math
 import heapq
 import random
-import time
+import copy
 import pylab as py
 
 debug = 0
@@ -23,13 +23,8 @@ class ASV:
 
 # sample class
 class Sample:
-    def __init__(self, coordinates):#, cx, cy, x, y):#, angle):
+    def __init__(self, coordinates):
         self.coords = coordinates
-#         self.cx = cx
-#         self.cy = cy
-#         self.x = x
-#         self.y = y
-#         self.angle = angle
         self.points = []
         self.parent = None
         self.g = 0
@@ -254,14 +249,7 @@ def check2(coordinate, asv, AStar):
     
     obstacle_x = AStar.obstacle_x
     obstacle_y = AStar.obstacle_y
-    
-#    for i in obstacles:
-#        x = sorted(i[::2])
-#        y = sorted(i[1::2])
-#        obstacle_x.append([x[0],x[-1]])
-#        obstacle_y.append([y[0],y[-1]])
-        
-    # boom in obstacle (True for collision)
+
     if check_collision(AStar, asv) == False:
         for i in asv:
             if 0 <= i.x <= 1000 and  0 <= i.y <= 1000:
@@ -431,30 +419,14 @@ def check_collision(AStar, asv):
     return False
 
 
-#def check_collision(AStar, asv):
-#    pairs = [[0, 1, 2, 3], [2, 3, 4, 5], [4, 5, 6, 7], [6, 7, 0, 1]]
-#    for i in range(len(asv) - 1):
-#        for j in range(len(obstacles)):
-#            for k in range(len(pairs)):
-#                if intersect(Point(asv[i].x, asv[i].y), Point(asv[i + 1].x, asv[i + 1].y), Point((obstacles[j])[(pairs[k])[0]], (obstacles[j])[(pairs[k])[1]]), Point((obstacles[j])[(pairs[k])[2]], (obstacles[j])[(pairs[k])[3]])):
-#                    return True
-#    return False
-
-def centroid_angle(coords):
-    num = len(coords) / 2
-    sumx = 0
-    sumy = 0
-#     print coords
-    for i in range(num):
-        sumx = sumx + coords[i]
-        sumy = sumy + coords[i+1]
-    cx = sumx / num
-    cy = sumy / num
-#     angle = angles(Point(coords[0] + 1, coords[1]), Point(coords[0], coords[1]), Point(cx, cy))
-    return cx, cy #, angle
-
-def interpolate(current, previous):
+def interpolate(cur, prev):
+    current = cur[:]
+    previous = prev[:]
+    
 #    assuming that the coordinates provided at x0,y0,x1,y1,x2,y2
+    for i in range(len(current)):
+        current[i] = round(current[i],3)
+        previous[i] = round(previous[i],3)
     moves = []
     move = []
     x = True
@@ -483,71 +455,28 @@ def extract_points(new, origin, AStar,cSpace):
     
     steps = []
     index = 0
-    
     route = interpolate([new[0]/1000.0,new[1]/1000.0],[origin[0]/1000.0,origin[1]/1000.0])
-#    print new,origin
-#    print route
+    
     for point in route:
         for o in range(len(AStar.obstacle_x)):
             if AStar.obstacle_x[o][0] <= point[0] and AStar.obstacle_x[o][1] >= point[0] and AStar.obstacle_y[o][0] <= point[1] and AStar.obstacle_y[o][1] >= point[1]:
                 return [None,-1]
 
     No_step = len(route)
+    if not No_step:
+        No_step = 1 
+        route.append([new[0],new[1]])
     delta_gamma = (new[2] - origin[2])/No_step
     delta_angles = []
     
     for i in range(len(new[4])):
         delta_angles.append((new[4][i] - origin[4][i])/float(No_step))
 
-    prev_config = origin
+    prev_config = origin[:]
     
     steps.append(obtain_coordinates(prev_config,AStar))
-#    print "first"
+
     if steps[-1] == -1:
-#        print "shit"
-        for i in cSpace:
-            if prev_config == i:
-                print i
-                coordinate = []
-                xxx = []
-                yyy = []
-                init_coord = [0,0]
-                [shift_x,shift_y,rotate,lengths,angles] = prev_config
-                shift = [shift_x,shift_y]
-                coordinate.append(init_coord)
-                coordinate.append([init_coord[0] + lengths[0], init_coord[1]])
-                for i in range(1,len(lengths)):
-                    [x, y] = coordinate[-1]
-                    angle = angles[i-1]
-                    length = lengths[i]
-                    x = x + (length * np.cos(angle))
-                    y = y + (length * np.sin(angle))
-                    coordinate.append([x, y])
-                
-                for i in coordinate:
-                    xxx.append(i[0])
-                    yyy.append(i[1])
-                py.plot(xxx,yyy,'+-')
-                py.show()
-                xxx = []
-                yyy = []
-                
-                shift = Shift(coordinate, shift)
-                for i in shift:
-                    xxx.append(i[0])
-                    yyy.append(i[1])
-                py.plot(xxx,yyy,'+-')
-                py.show()
-                xxx = []
-                yyy = []
-            
-                coordinate = Rotate2D(shift, rotate, shift[0])
-                for i in coordinate:
-                    xxx.append(i[0])
-                    yyy.append(i[1])
-                py.plot(xxx,yyy,'+-')
-                py.show()
-                sys.exit(1)
         return [None,-1]
     
     for index in range(No_step):
