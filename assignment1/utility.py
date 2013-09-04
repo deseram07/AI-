@@ -258,13 +258,11 @@ def check2(coordinate, asv, AStar):
                         return False
             else:
                 return False
-        print coordinate
         return True
     return False
 
 def dup_check2(coordinate, AStar):
 
-    
     obstacle_x = AStar.obstacle_x
     obstacle_y = AStar.obstacle_y
           
@@ -344,8 +342,6 @@ def obtain_random_points(asv, AStar, n=5):
             sample.append(angles[:-2])
 
             points.append(sample)
-            print points
-            sys.exit()
             sample = []
             count += 1
     print "Finished sampling"
@@ -367,12 +363,13 @@ def dup_check_collision(AStar, coordinates):
             maxx = k[1]
             maxy = l[1]
             corners.append([Point(minx,miny), Point(minx,maxy), Point(maxx,miny), Point(maxx,maxy)])
-        
-    for i in range(len(coordinates)/2 - 1):
+    k = 0
+    l = 0
+    for i in range(len(coordinates) - 1):
         for k in corners:
             for l in range(len(k)-1):
-                A = Point(coordinates[i*2], coordinates[i*2+1])
-                B = Point(coordinates[(i + 1)*2], coordinates[(i + 1)*2+1])
+                A = Point(coordinates[i][0], coordinates[i][1])
+                B = Point(coordinates[i + 1][0], coordinates[i + 1][1])
                 C = k[l]
                 if l == len(k):
                     D = k[0]

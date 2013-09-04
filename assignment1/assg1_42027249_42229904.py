@@ -152,7 +152,8 @@ def process(cSpace, start, dest):
         f, sample = heapq.heappop(AStar.op)
 #        if m == 2:
 #            sys.exit()
-#        m += 1
+        m += 1
+        print m
         AStar.cl.add(sample)
         for i in range(len(sample.coords)):
             if sample.coords[i] != AStar.end.coords[i]:
