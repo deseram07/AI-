@@ -258,6 +258,7 @@ def check2(coordinate, asv, AStar):
                         return False
             else:
                 return False
+        print coordinate
         return True
     return False
 
@@ -343,7 +344,8 @@ def obtain_random_points(asv, AStar, n=5):
             sample.append(angles[:-2])
 
             points.append(sample)
-
+            print points
+            sys.exit()
             sample = []
             count += 1
     print "Finished sampling"

@@ -106,16 +106,19 @@ def get_adj(array, sample):
 
 def points_to_polar(coords):
     polar = [float(coords[0]), float(coords[1])]
-    rotate = angles(Point(coords[0] + 1, coords[1]), Point(coords[0], coords[1]), Point(coords[2], coords[3]))
+    rotate = angles(Point(coords[0]+1, coords[1]), Point(coords[0],coords[1]), Point(coords[2],coords[3]))
     if coords[1] > coords[3]:
-        rotate = 2 * np.pi - rotate
+        rotate = 2*np.pi - rotate
     angle = []
-    lengths = [boom_length(Point(coords[0], coords[1]), Point(coords[2], coords[3]))]
-    for i in range(len(coords) / 2 - 2):
-        lengths.append(boom_length(Point(coords[(i + 1) * 2], coords[(i + 1) * 2 + 1]), Point(coords[(i + 2) * 2], coords[(i + 2) * 2 + 1])))
-        temp = angles(Point(coords[(i + 1) * 2] + 1, coords[(i + 1) * 2 + 1]), Point(coords[(i + 1) * 2], coords[(i + 1) * 2 + 1]), Point(coords[(i + 2) * 2], coords[(i + 2) * 2 + 1]))
-        if coords[(i + 1) * 2 + 1] > coords[(i + 2) * 2 + 1]:
-            temp = 2 * np.pi - temp
+    lengths = [boom_length(Point(coords[0],coords[1]),Point(coords[2],coords[3]))]
+    for i in range(len(coords)/2-2):
+        lengths.append(boom_length(Point(coords[(i+1)*2],coords[(i+1)*2+1]), Point(coords[(i+2)*2], coords[(i+2)*2+1])))
+        temp = angles(Point(coords[(i+1)*2]+1,coords[(i+1)*2+1]),Point(coords[(i+1)*2],coords[(i+1)*2+1]), Point(coords[(i+2)*2],coords[(i+2)*2+1]))
+        if coords[(i+1)*2+1] > coords[(i+2)*2+1]:
+            temp = 2*np.pi - temp
+        temp = temp - rotate
+        if temp < 0:
+            temp = 2*np.pi + temp
         angle.append(temp)
     polar.append(rotate)
     polar.append(lengths)
