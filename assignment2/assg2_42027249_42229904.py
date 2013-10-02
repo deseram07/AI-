@@ -99,8 +99,11 @@ def main(inputfile, outputfile):
 if __name__ == '__main__':
     if(len(sys.argv) is not 3):
         print "Usage: python assg1_42027249_42229904.py desired_input_file desired_output_file"
-        sys.exit(1)
+        target_Prob = motion_history('./tools/targetMotionHistory.txt')
+#        sys.exit(1)
     else:
         main(sys.argv[1], sys.argv[2])
+        
+        
     
 
