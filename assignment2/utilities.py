@@ -28,10 +28,19 @@ class Target:
 def target_motion_history(file):
     data = open(file, 'r')
     lines = data.readlines()
+<<<<<<< HEAD
     action = [0, 0, 0, 0, 0, 0, 0, 0]
     prob_map = []
     for i in range(int(lines[0].strip('\n').strip('\r'))):
         data = lines[1 + i].strip('\n').strip('\r').split(' ')
+=======
+    init = float(lines.pop(0).strip('\r\n'))
+    count = 0.0
+    for line in lines:
+        if line[0] == line[2]:
+            count += 1
+    print count/init
+>>>>>>> ce25a1bbedd5b0a0df51e1ea5b0ef996dc3d5b66
     # do stuff
     
     
