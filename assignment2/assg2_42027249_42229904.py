@@ -62,7 +62,8 @@ def main(inputfile, outputfile):
     t = int(lines[0].strip('\n').strip('\r'))
     A = int(lines[1].strip('\n').strip('\r')[-1])
     files = lines[2].strip('\n').strip('\r').split(' ')  # [target policy (, target motion history)]
-    targetParams = lines[3].strip('\n').strip('\r').split(' ')
+    temp = lines[3].strip('\n').strip('\r').split(' ')
+    targetParams = [float(temp[0]), float(temp[1])]
     if A == 2:
         targetsData = files[1]
         target_Prob = target_motion_history(path + targetsData)
@@ -72,23 +73,29 @@ def main(inputfile, outputfile):
         trackerData = lines[5].strip('\n').strip('\r')
         tracker_Prob = tracker_motion_history(path + trackerData)
     C = int(lines[6].strip('\n').strip('\r')[-1])
-    trackerParams = lines[7].strip('\n').strip('\r').split(' ')  # [(minLength, maxLength,) beta, Rb]
-    trackerPos = lines[8].strip('\n').strip('\r').split(' ')  # [x, y, heading(, initialLength)]
-    
-#    for i in range(t):
-#        targetsPos.append(lines[9 + i].strip('\n').strip('\r').split(' '))  # [x, y, heading, x, y, heading, ...]
-    targetsPos = lines[9].strip('\n').strip('\r').split(' ')
+    temp = lines[7].strip('\n').strip('\r').split(' ')  # [(minLength, maxLength,) beta, Rb]
+    trackerParams = []
+    for i in range(len(temp)):
+        trackerParams.append(float(temp[i]))
+    temp = lines[8].strip('\n').strip('\r').split(' ')  # [x, y, heading(, initialLength)]
+    trackerPos = []
+    for i in range(len(temp)):
+        trackerPos.append(float(temp[i]))
+#     for i in range(t):
+#         targetsPos.append(lines[9 + i].strip('\n').strip('\r').split(' '))  # [x, y, heading, x, y, heading, ...]
+    temp = lines[9].strip('\n').strip('\r').split(' ')
+    targetsPos = [float(temp[0]), float(temp[1]), float(temp[2])]
     end = lines[9 + t].strip('\n').strip('\r').split(' ')
     x = sorted(end[::2])
     y = sorted(end[1::2])
-    goal = [[x[0], y[0]], [x[-1], y[-1]]]  # [[minX, minY], [maxX, maxY]]
+    goal = [[float(x[0]), float(y[0])], [float(x[-1]), float(y[-1])]]  # [[minX, minY], [maxX, maxY]]
     
     # Creating obstacles in grid
     for j in range(int(lines[10 + t].strip('\n').strip('\r'))):
         obstacle = lines[10 + t + j + 1].strip('\n').strip('\r').split(' ')
         x = sorted(obstacle[::2])
         y = sorted(obstacle[1::2])
-        obstacles.append([x[0], y[0], x[-1], y[-1]])  # [[x1_low, y1_low, x1_high, y1_high],[....]]
+        obstacles.append([float(x[0]), float(y[0]), float(x[-1]), float(y[-1])])  # [[x1_low, y1_low, x1_high, y1_high],[....]]
     setup.close()
     
     """
