@@ -65,18 +65,19 @@ def main(inputfile, outputfile):
     targetParams = lines[3].strip('\n').strip('\r').split(' ')
     if A == 2:
         targetsData = files[1]
-        target_Prob = motion_history(path + targetsData)
+        target_Prob = target_motion_history(path + targetsData)
     targetsPolicy = files[0]
     B = int(lines[4].strip('\n').strip('\r')[-1])
     if B == 2:
         trackerData = lines[5].strip('\n').strip('\r')
-        tracker_Prob = motion_history(path + trackerData)
+        tracker_Prob = tracker_motion_history(path + trackerData)
     C = int(lines[6].strip('\n').strip('\r')[-1])
     trackerParams = lines[7].strip('\n').strip('\r').split(' ')  # [(minLength, maxLength,) beta, Rb]
     trackerPos = lines[8].strip('\n').strip('\r').split(' ')  # [x, y, heading(, initialLength)]
     
-    for i in range(t):
-        targetsPos.append(lines[9 + i].strip('\n').strip('\r').split(' '))  # [x, y, heading, x, y, heading, ...]
+#    for i in range(t):
+#        targetsPos.append(lines[9 + i].strip('\n').strip('\r').split(' '))  # [x, y, heading, x, y, heading, ...]
+    targetsPos = lines[9].strip('\n').strip('\r').split(' ')
     end = lines[9 + t].strip('\n').strip('\r').split(' ')
     x = sorted(end[::2])
     y = sorted(end[1::2])
@@ -113,19 +114,19 @@ def main(inputfile, outputfile):
         tracker.targetMotion = target_Prob
     if B == 2:
         tracker.motionHist = tracker_Prob
-    
+    """
+    End of class setup
+    """
+    check(tracker,target)
     """
     play game
     """
     play_game(tracker, target, outputfile)
     
 
-    
-
 if __name__ == '__main__':
     if(len(sys.argv) is not 3):
         print "Usage: python assg1_42027249_42229904.py desired_input_file desired_output_file"
-        target_Prob = motion_history('./tools/targetMotionHistory.txt')
 #        sys.exit(1)
     else:
         main(sys.argv[1], sys.argv[2])

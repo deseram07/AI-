@@ -1,4 +1,5 @@
 import numpy as np
+import math
 
 class Tracker:
     def __init__(self, num, policy, goal, targetParam, targetState, params, state, obstacles, C):
@@ -9,8 +10,8 @@ class Tracker:
         self.targetMotion = None
         self.targetState = targetState
         self.motionHist = None
-        self.params = params
-        self.state = state
+        self.params = params #[minLength, maxLength, beta, R] or [beta, R]
+        self.state = state #[x,y,theta, c(length of camera)]
         self.obstacles = obstacles
         self.C = C
         
@@ -19,34 +20,26 @@ class Target:
         self.num = num
         self.policy = policy
         self.goal = goal
-        self.params = targetParam
+        self.params = targetParam #[alpha, R]
         self.motionHist = None
-        self.state = targetState
+        self.state = targetState #[x,y,theta]
         self.obstacles = obstacles
         self.A = A
         
-def target_motion_history(file):
-    data = open(file, 'r')
+def target_motion_history(file_i):
+    data = open(file_i, 'r')
     lines = data.readlines()
-<<<<<<< HEAD
-    action = [0, 0, 0, 0, 0, 0, 0, 0]
-    prob_map = []
-    for i in range(int(lines[0].strip('\n').strip('\r'))):
-        data = lines[1 + i].strip('\n').strip('\r').split(' ')
-=======
     init = float(lines.pop(0).strip('\r\n'))
     count = 0.0
     for line in lines:
         if line[0] == line[2]:
             count += 1
     print count/init
->>>>>>> ce25a1bbedd5b0a0df51e1ea5b0ef996dc3d5b66
     # do stuff
     
     
     
     data.close()
-    return prob_map
         
 # function used to determine the divergence probability from previous data Stohcastic model
 def tracker_motion_history(file):
@@ -55,13 +48,12 @@ def tracker_motion_history(file):
     action = [0, 0, 0, 0, 0, 0, 0, 0]
     prob_map = []
     for i in range(int(lines[0].strip('\n').strip('\r'))):
-        data = lines[1 + i].strip('\n').strip('\r').split(' ')
+        data1 = lines[1 + i].strip('\n').strip('\r').split(' ')
     # do stuff
-    
-    
     
     data.close()
     return prob_map
+
 
 # function used to diverge person based on probability of motion history
 def diverge(person):
@@ -78,15 +70,29 @@ def finish(goal, target_pos):
 def observation(tracker):
     cells = []
     
+    
     return cells
 
 # function used to check if person1 can see person2, returns a list of reward points
 def check(person1, person2):
     # check if person1 can see person2
     # return 1 if can
+    p1 = []
+    p2 = [] 
+    for i,j in zip(person1.state[:2], person2.state[:2]):
+        p1.append(float(i))
+        p2.append(float(j))
     reward = []
-    for i in len(person1.state):
-        for j in len(person2.state):
-            pass
-            # # check vision
-    return reward
+#    for i in len(person1.state):
+#        for j in len(person2.state):
+#            pass
+#            # # check vision
+    x,y = p2
+    dist = np.sqrt(x**2 + y**2)
+    if dist < float(person1.param[0]):
+        angle = angle()
+#    return reward
+
+def angles():
+    
+    return angle
