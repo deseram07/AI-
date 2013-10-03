@@ -25,13 +25,15 @@ def target_turn(target):
     action = target.policy[int(target.state[1] / step)][int(target.state[0] / step)]
     if debug == "target":
         print "policy: " + str(action)
-    rand = random.random()
+    
     if(target.A == 1):  # A1 -----------------------------------------------
         action = random.randint(0, 8)
     else:  # A2 -----------------------------------------------------------
+        rand = random.random()
         prob = 0.0
         for i in range(len(target.motionHist)):
             prob += target.motionHist[action][i]
+#             print prob
             if(rand < prob):
                 action = i
                 break
@@ -87,19 +89,19 @@ def play_game(tracker, target, outputfile):
     turn = 0
     trackerPoints = 0
     targetPoints = 0
-    targetPos = tracker.targetState
+#     targetPos = tracker.targetState
     list = ["%s" % str(i) for i in tracker.state]
     hist = [' '.join(list)]
     list = ["%s" % str(i) for i in target.state]
     string = ' '.join(list)
     hist.append(string)
-    print hist
-    if debug == "target":
-        print target.goal
-        print target.state
+#     print hist
+# #     if debug == "target":
+# #         print target.goal
+# #         print target.state
 #     for i in range(target.num):
 #         hist.append(' '.join(targetPos[i]))
-    while(finish(tracker.goal, targetPos) == False):
+    while(finish(tracker.goal, target.state) == False):
         if (turn % 2 == 0):
             pass
 #             tracker_turn(tracker) # action
@@ -115,7 +117,7 @@ def play_game(tracker, target, outputfile):
 
         else:
             if debug == "target":
-                print target.goal
+#                 print target.goal
                 print target.state
                 raw_input("Press Enter to continue...")
             target_turn(target)
@@ -202,8 +204,8 @@ def main(inputfile, outputfile):
                 rowData.append(int(j))
         policyData.insert(0, rowData)
 #         policyData.append(rowData)
-    if debug == "target":
-        print policyData
+#     if debug == "target":
+#         print policyData
 
         # 0 = NW, 1 = N, 2 = NE, 3 = W, 4 = stay, 5 = E, 6 = SW, 7 = S, 8 = SE.
     policyFile.close()

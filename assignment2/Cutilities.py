@@ -70,12 +70,15 @@ def tracker_motion_history(file_1):
 
 # Checks if target inside finish area
 def finish(goal, target_pos):
+#     print 'finish'
     return point_in_polygon(goal, target_pos)
 
 # check in coordinate is inside polygon (works for state inside polygon)
 def point_in_polygon(polygon, point):
     # polygon = [[minX, minY], [maxX, maxY]], point = [x, y]
-    if polygon[0][0] <= point[0] and point[0] <= polygon[1][0] and polygon[0][1] <= point[1] and point[1] <= polygon[1][1]:
+#     print 'poi',point[0]
+#     print 'ploy',polygon
+    if point[0] >=  polygon[0][0] and point[0] <= polygon[1][0] and polygon[0][1] <= point[1] and point[1] <= polygon[1][1]:
         return True
     return False
 
