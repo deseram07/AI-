@@ -14,7 +14,7 @@ def tracker_turn(tracker):
     
     ##### Do everything else ------------------------------------------------------------------------
     
-    if suitable_state(tracker, step)==False:
+    if suitable_state(tracker, step) == False:
         tracker.state = previous_state
     pass
 
@@ -49,38 +49,21 @@ def target_turn(target):
     elif action % 3 == 2:
         target.state[0] += step
         
-    if (suitable_state(target, step)==False):
+    if (suitable_state(target, step) == False):
         action = 4
         target.state = state
-        
-#     flag = 0
-#     # make sure state is still within bounds
-#     if target.state[0] > 1:
-#         flag = 1
-#         target.state[0] = 1 - (step / 2)
-#     elif target.state[0] < 0:
-#         flag = 1
-#         target.state[0] = 0 + (step / 2)
-#     if target.state[1] > 1:
-#         flag = 1
-#         target.state[1] = 1 - (step / 2)
-#     elif target.state[1] < 0:
-#         flag = 1
-#         target.state[1] = 0 + (step / 2)
-#         
-#     for i in target.obstacles:
-#         if point_in_polygon(i, target.state):
-#             target.state = state
-#             action = 4
-#             break
-#         
-#     if flag == 1:
-#         action = 4
-#         target.state = state
+    
+    if action < 3:
+        target.state[2] = 45 * (3 - action)
+    elif action == 3:
+        target.state[2] = 180
+    elif action == 5:
+        target.state[2] = 0
+    elif action > 5:
+        target.state[2] = 180 + 45 * (action - 5)
     
     if debug == "target":
         print "action: " + str(action)
-    
 
 """
 function for controlling the game
@@ -209,7 +192,6 @@ def main(inputfile, outputfile):
 
         # 0 = NW, 1 = N, 2 = NE, 3 = W, 4 = stay, 5 = E, 6 = SW, 7 = S, 8 = SE.
     policyFile.close()
-    
     
     """
     Create target and tracker
