@@ -2,15 +2,36 @@ import sys
 import numpy as np
 from Cutilities import *
 import random
+import vectors
 
 debug = 0
 # debug = "target" # used for debugging target moves
 
 
-def tracker_turn(tracker):
+def tracker_turn(tracker, target):
+    
     obs = observation(tracker)
     previous_state = tracker.state[:]
     step = 1.0 / tracker.m
+    targetx = target.state[0] / step
+    targety =target.state[1] / step
+#    -------
+    target_pos = [targetx,targety]
+#    ----
+    
+    action = target.policy[int(targetx)][int(targety)]
+    
+#    extract target motion history action
+    for i in range(9):
+        print target.motionHist[action][i]
+        
+#    displacement of target
+    target_states = []
+    for i in target.actionspace:
+        dx,dy = i
+        target_states.append([target.state[0]+dx*step ,target.state[1]+dy*step, int(norm_ang(math.degrees(math.atan2(dy, dx))))])
+    print target_states
+    print target_pos, dx,dy
     
     ##### Do everything else ------------------------------------------------------------------------
     
@@ -86,8 +107,9 @@ def play_game(tracker, target, outputfile):
 #         hist.append(' '.join(targetPos[i]))
     while(finish(tracker.goal, target.state) == False):
         if (turn % 2 == 0):
-            pass
-#             tracker_turn(tracker) # action
+#            pass
+            tracker_turn(tracker, target) # action
+            sys.exit()
 #             diverge(tracker)
 #             reward = check(tracker, target) # observation
 #             if reward == 1:

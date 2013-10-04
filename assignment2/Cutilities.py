@@ -16,6 +16,7 @@ class Tracker:
         self.obstacles = obstacles  # [[[minx, miny], [maxx, maxy]],[....]]
         self.desiredAction = None 
         self.C = C  # int 0 for using eyes, 1 for using camera on stick
+        self.actionspace = []
         
 class Target:
     def __init__(self, m, num, policy, goal, targetParam, targetState, obstacles, A):
@@ -28,6 +29,7 @@ class Target:
         self.state = targetState  # [x, y, theta]
         self.obstacles = obstacles  # [[[minx, miny], [maxx, maxy]],[....]]
         self.A = A  # movement type, 0 completely random, 1 modeled random
+        self.actionspace = [[1,-1],[1,0],[1,1],[0,-1],[0,0],[0,1],[-1,-1],[-1,0],[-1,1]]\
 
         
 def target_motion_history(file_1):
@@ -194,12 +196,26 @@ def tracker_vision(tracker):
 def check(person1, person2):
     # check if person1 can see person2
     # return 1 if can
+    p1 = person1.state[:2] 
+    p2 = person2.state[:2]
+    p3 = [p1[0]+1, p1[1]] #position along the xaxis from p2
+    direction = person1.state[2]
     reward = []
-    for i in len(person1.state):
-        for j in len(person2.state):
-            pass
-            # # check vision
-    return reward
+    
+    x,y = p2[0] - p1[0], p2[1] - p1[1]
+    dist = np.sqrt(x**2 + y**2)
+    R = person1.params[-1]
+    if dist < R:
+        angle = angle_about_mid(p1, p2, p3)
+        if p1[0]<p2[0]:
+            # gets the right angle if greater than 90 degrees
+            angle = np.rad2deg(np.pi - angle)
+            
+        if not ccw(p1,p2,p3):
+            angle = -np.rad2deg(angle)
+        if abs(direction - angle)>person1.params[-2]:
+            return 1
+    return 0
 
 def suitable_state(person, step):
     # make sure state is still within bounds
