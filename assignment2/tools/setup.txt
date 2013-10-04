@@ -1,9 +1,9 @@
 3
 A2
-targetPolicy.txt targetMotionHistory.txt
+targetPolicy.txt targetMotionHist.txt
 60 0.2
 B2
-trackerMotionHistory.txt
+trackerMotionHist.txt
 C2
 0.00 0.10 60 0.2
 0.55 0.15 90 0.1

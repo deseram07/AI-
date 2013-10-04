@@ -9,30 +9,43 @@ debug = 0
 
 
 def tracker_turn(tracker, target):
+    Value_init = np.zeros(24,dtype = np.floats)  #Value function matrix for processing
+    Value_processing = np.zeros(24,dtype = np.floats)    #Value function matrix to update while processing
     
     obs = observation(tracker)
     previous_state = tracker.state[:]
     step = 1.0 / tracker.m
+
+#    current possition of the target    
     targetx = target.state[0] / step
     targety =target.state[1] / step
-#    -------
-    target_pos = [targetx,targety]
-#    ----
     
     action = target.policy[int(targetx)][int(targety)]
     
-#    extract target motion history action
-    for i in range(9):
-        print target.motionHist[action][i]
-        
 #    displacement of target
     target_states = []
+    tracker_states = []
     for i in target.actionspace:
         dx,dy = i
         target_states.append([target.state[0]+dx*step ,target.state[1]+dy*step, int(norm_ang(math.degrees(math.atan2(dy, dx))))])
-    print target_states
-    print target_pos, dx,dy
+        
+#    displacement of tracker
+    for i in tracker.actionspace:
+        dx,dy = i
+        tracker_states.append([tracker.state[0]+dx*step ,tracker.state[1]+dy*step, int(norm_ang(math.degrees(math.atan2(dy, dx))))])
+#    print tracker.Value
     
+#    initial update of value function using trackers new position
+#    assigning negative values for what target can see
+    
+    prob = target.motionHist[action]
+    for i in range(len(prob)):
+        cells = vision(target,target_states[i], False)
+        for j in range(len(tracker_states)):
+            Value_init[j] -= p 
+        
+        
+        
     ##### Do everything else ------------------------------------------------------------------------
     
     if suitable_state(tracker, step) == False:

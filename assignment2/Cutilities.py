@@ -16,7 +16,9 @@ class Tracker:
         self.obstacles = obstacles  # [[[minx, miny], [maxx, maxy]],[....]]
         self.desiredAction = None 
         self.C = C  # int 0 for using eyes, 1 for using camera on stick
-        self.actionspace = []
+        self.actionspace = [[-1,1],[-0.5,1],[0,1],[0.5,1],[1,1],[-1,0.5],[-0.5,0.5],[0,0.5],[0.5,0.5],[1,0.5],
+                            [-1,0],[-0.5,0],[0,0],[0.5,0],[1,0],[-1,-0.5],[-0.5,-0.5],[0,-0.5],[0.5,-0.5],[1,-0.5],
+                            [-1,-1],[-0.5,-1],[0,-1],[-0.5,-0.5],[-1,-1]]
         
 class Target:
     def __init__(self, m, num, policy, goal, targetParam, targetState, obstacles, A):
