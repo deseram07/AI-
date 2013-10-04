@@ -9,8 +9,8 @@ debug = 0
 
 
 def tracker_turn(tracker, target):
-    Value_init = np.zeros(24,dtype = np.floats)  #Value function matrix for processing
-    Value_processing = np.zeros(24,dtype = np.floats)    #Value function matrix to update while processing
+    Value_init = np.zeros(24,dtype = np.float)  #Value function matrix for processing
+    Value_processing = np.zeros(24,dtype = np.float)    #Value function matrix to update while processing
     
     obs = observation(tracker)
     previous_state = tracker.state[:]
@@ -30,21 +30,27 @@ def tracker_turn(tracker, target):
         target_states.append([target.state[0]+dx*step ,target.state[1]+dy*step, int(norm_ang(math.degrees(math.atan2(dy, dx))))])
         
 #    displacement of tracker
+    print tracker.state
     for i in tracker.actionspace:
         dx,dy = i
         tracker_states.append([tracker.state[0]+dx*step ,tracker.state[1]+dy*step, int(norm_ang(math.degrees(math.atan2(dy, dx))))])
+    print tracker_states
 #    print tracker.Value
     
 #    initial update of value function using trackers new position
 #    assigning negative values for what target can see
     
     prob = target.motionHist[action]
+#    print target.state
+#    print tracker_states,'\n'
     for i in range(len(prob)):
         cells = vision(target,target_states[i], False)
         for j in range(len(tracker_states)):
-            Value_init[j] -= p 
-        
-        
+            check = tracker_states[j][:2]
+            for c in cells:
+                if abs(c[0] - check[0]) < 0.0001 and (abs(c[1] - check[1]) < 0.0001):
+                    Value_init[j] -= prob[i]*(1.0)
+#    print Value_init
         
     ##### Do everything else ------------------------------------------------------------------------
     
