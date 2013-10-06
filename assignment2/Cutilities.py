@@ -225,23 +225,14 @@ def check(p1, p2, person1, person2):
             return 1
     return 0
 
-def suitable_state(person, step):
+def suitable_state(person, state, step):
     # make sure state is still within bounds
-    if person.state[0] > 1 or person.state[0] < 0 or person.state[1] > 1 or person.state[1] < 0:
+    if state[0] > 1 or state[0] < 0 or state[1] > 1 or state[1] < 0:
         return False 
-    
-#     if person.state[0] > 1:
-#         person.state[0] = 1 - (step / 2)
-#     elif person.state[0] < 0:
-#         person.state[0] = 0 + (step / 2)
-#     if person.state[1] > 1:
-#         person.state[1] = 1 - (step / 2)
-#     elif person.state[1] < 0:
-#         person.state[1] = 0 + (step / 2)
 
     # check is person is inside an obstacle
     for i in person.obstacles:
-        if point_in_polygon(i, person.state):
+        if point_in_polygon(i, state):
             return False
 
     return True

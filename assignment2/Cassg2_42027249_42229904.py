@@ -45,7 +45,7 @@ def tracker_turn(tracker, target):
             if check(tracker_states[j], target_states[i], tracker, target):
                 Value_init[j] += (1.0)
 
-    print Value_init
+#     print Value_init
     
 # updating initial value function matrix with actions
     for action in tracker.actionspace:
@@ -54,19 +54,28 @@ def tracker_turn(tracker, target):
             Value_init[i] += (Value_init[i] * prob_tracker[i])
 #            print Value_init
 #        break
-    print Value_init
+#     print Value_init
     
     best_action = 1
     for index in tracker.actionspace:
         if Value_init[index] > Value_init[best_action]:
             best_action = index
-    print best_action
-    print tracker_states[best_action]
-    ##### Do everything else ------------------------------------------------------------------------
+#     print best_action
+#     print tracker_states[best_action]
+
     
-    if suitable_state(tracker, step) == False:
-        tracker.state = previous_state
-    pass
+    rand = random.random()
+    possible = 0.0
+    for i in range(len(tracker.motionHist)):
+        possible += tracker.motionHist[best_action][i]
+#             print prob
+        if(rand < possible):
+            act = i
+            break
+
+    if suitable_state(tracker, tracker_states[act], step):
+        tracker.state = tracker_states[act]
+
 
 def target_turn(target):
     step = 1.0 / target.m
@@ -90,27 +99,14 @@ def target_turn(target):
     
     # perform action for target
     state = target.state[:]
-    if action < 3:
-        target.state[1] += step
-    elif action > 5:
-        target.state[1] -= step
-    if action % 3 == 0:
-        target.state[0] -= step
-    elif action % 3 == 2:
-        target.state[0] += step
+    x,y = target.actionspace[action]
+    state[0] = state[0] + x*step
+    state[1] = state[1] + y*step
+    state[2] = norm_ang(math.degrees(math.atan2(y, x)))
         
-    if (suitable_state(target, step) == False):
-        action = 4
-        target.state = state
+    if (suitable_state(target, state, step)):
+        target.state = state[:]
     
-    if action < 3:
-        target.state[2] = 45 * (3 - action)
-    elif action == 3:
-        target.state[2] = 180
-    elif action == 5:
-        target.state[2] = 0
-    elif action > 5:
-        target.state[2] = 180 + 45 * (action - 5)
     
     if debug == "target":
         print "action: " + str(action)
@@ -138,41 +134,48 @@ def play_game(tracker, target, outputfile):
         if (turn % 2 == 0):
 #            pass
             tracker_turn(tracker, target) # action
-            sys.exit()
+            print tracker.state
 #             diverge(tracker)
-#             reward = check(tracker, target) # observation
-#             if reward == 1:
-#                 tracker.targetState = target.state
-#             trackerPoints += reward
-#             list = ["%.s"% str(i) for i in tracker.state]
-#             string = ' '.join(list) + ' ' + str(reward)
+            reward = check(tracker.state, target.state, tracker, target) # observation
+            if reward == 1:
+                tracker.targetState = target.state
+            trackerPoints += reward
+            list = ["%s"% str(i) for i in tracker.state]
+            string = ' '.join(list) + ' ' + str(reward)
 #             string = ' '.join(tracker.state) + ' ' + str(reward[0])
-#             hist.append(string)
+            hist.append(string)
 
         else:
             if debug == "target":
 #                 print target.goal
                 print target.state
                 raw_input("Press Enter to continue...")
+#             print target.state
             target_turn(target)
 #             if debug == "target":
 #                 print target.goal
 #                 print target.state
 #                 raw_input("Press Enter to continue...")
-#             reward = check(target, tracker)
-            reward = 0
+            reward = check(target.state, tracker.state, target, tracker)
+            print target.state
+#             reward = 0
             targetPoints += reward
             list = ["%s" % str(i) for i in target.state]
             string = ' '.join(list) + ' ' + str(reward)
             hist.append(string)
             targetPoints = targetPoints + reward
-            hist.append(string)
+#             hist.append(string)
+#             sys.exit()
             
         turn += 1
 
 #     print hist
-#     output = open(outputfile, 'w')
-#     output.close()
+    output = open(outputfile, 'w')
+    output.write(str(turn)+"\r\n")
+    for i in range(len(hist)):
+        output.write(hist[i])
+        output.write("\r\n")
+    output.close()
 
 def main(inputfile, outputfile):
     path = 'tools/'
