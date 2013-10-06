@@ -1,5 +1,6 @@
 import numpy as np
 import math
+from vectors import *
 
 class Tracker:
     def __init__(self, m, num, policy, goal, targetParam, targetState, params, state, obstacles, C):
@@ -16,9 +17,10 @@ class Tracker:
         self.obstacles = obstacles  # [[[minx, miny], [maxx, maxy]],[....]]
         self.desiredAction = None 
         self.C = C  # int 0 for using eyes, 1 for using camera on stick
-        self.actionspace = [[-1,1],[-0.5,1],[0,1],[0.5,1],[1,1],[-1,0.5],[-0.5,0.5],[0,0.5],[0.5,0.5],[1,0.5],
+        self.statespace = [[-1,1],[-0.5,1],[0,1],[0.5,1],[1,1],[-1,0.5],[-0.5,0.5],[0,0.5],[0.5,0.5],[1,0.5],
                             [-1,0],[-0.5,0],[0,0],[0.5,0],[1,0],[-1,-0.5],[-0.5,-0.5],[0,-0.5],[0.5,-0.5],[1,-0.5],
                             [-1,-1],[-0.5,-1],[0,-1],[-0.5,-0.5],[-1,-1]]
+        self.actionspace = [1,2,3,5,6,8,9,10,12,14,15,16,18,19,21,22,23]
         
 class Target:
     def __init__(self, m, num, policy, goal, targetParam, targetState, obstacles, A):
@@ -31,7 +33,7 @@ class Target:
         self.state = targetState  # [x, y, theta]
         self.obstacles = obstacles  # [[[minx, miny], [maxx, maxy]],[....]]
         self.A = A  # movement type, 0 completely random, 1 modeled random
-        self.actionspace = [[1,-1],[1,0],[1,1],[0,-1],[0,0],[0,1],[-1,-1],[-1,0],[-1,1]]
+        self.actionspace = [[-1,1],[0,1],[1,1],[-1,0],[0,0],[1,0],[-1,-1],[0,-1],[1,-1]]
 
         
 def target_motion_history(file_1):
@@ -97,7 +99,7 @@ def dist(point1, point2):
 # calculates angle between 3 ASVs
 def angle(start, middle, end):
     a = dist(middle, end)
-    if abs(a) < 0.00001:
+    if abs(a) < 0.0001:
         return -1
     b = dist(start, middle)
     c = dist(start, end)
@@ -118,27 +120,28 @@ def norm_ang(angle):
     return angle
 
 # checks if cell x, y is within the tracker's sight
-def sight(tracker, x, y, angles, error):
-    l =dist([x, y], tracker.state)
+def sight(tracker, x, y, angles, state, error):
+#    l =dist([x, y], state)
 #     print "dist:", l
 #     print "x,y:",  x, y
-    if abs(x-tracker.state[0]) > error or abs(y-tracker.state[1]) > error:
+    if abs(x-state[0]) > error or abs(y-state[1]) > error:
         if x >= 0 and x <= 1 and y >= 0 and y <= 1:
-            if dist([x, y], tracker.state) <= (tracker.params[-1]+error):
-                a = angle([tracker.state[0] + 1.0, tracker.state[1]], [tracker.state[0], tracker.state[1]], [x, y])
-                if y < tracker.state[1]:
-                    a = -a
-#                 print "angles:", angles
-#                 print "a:", a
-                if a <= angles[0] and a >= angles[1]:
-#                 if abs(tracker.state[2]-a)<= tracker.params[-2]:
-#                     print "appended"
-                    return True
+            if dist([x, y], state) <= (tracker.params[-1]+error):
+                a = angle([state[0] + 1.0, state[1]], [state[0], state[1]], [x, y])
+                if a > -0.1:
+                    if y < state[1]:
+                        a = -a
+    #                 print "angles:", angles
+    #                 print "a:", a
+                    if a <= angles[0] and a >= angles[1]:
+    #                 if abs(tracker.state[2]-a)<= tracker.params[-2]:
+    #                     print "appended"
+                        return True
     return False
 
 # vision function which returns visible cells for person, different between target and tracker
 def vision(person, state, type): 
-    error = 0.000001
+    error = 0.00001
     # type is set to True for Tracker, False for target
     if type == True:
         step = 1.0 / person.m
@@ -159,7 +162,7 @@ def vision(person, state, type):
     else:
         points = []
 #     print "off: %.2f %.2f" % (xoff, yoff)
-    angles = [state[2] + person.params[-2] / 2, state[2] - person.params[-2] / 2]
+    angles = [state[2] + (person.params[-2] / 2), state[2] - (person.params[-2] / 2)]
     
     for i in range(int(number-xoff)):
         xstep = xoff + step * i
@@ -171,55 +174,54 @@ def vision(person, state, type):
             tempx = state[0] + xstep
             tempy = state[1] + ystep
 #                 print "temp: %.2f %.2f" % (tempx, tempy)
-            if sight(person, tempx, tempy, angles, error)==True:
+            if sight(person, tempx, tempy, angles, state, error)==True:
                 points.append([tempx, tempy])
                 
             if abs(xstep) > error:
                 tempx = state[0] - xstep
                 tempy = state[1] + ystep
 #                 print "temp: %.2f %.2f" % (tempx, tempy)
-                if sight(person, tempx, tempy, angles, error)==True:
+                if sight(person, tempx, tempy, angles, state, error)==True:
                     points.append([tempx, tempy])
             
             if abs(xstep) > error and abs(ystep) > error:
                 tempx = state[0] - xstep
                 tempy = state[1] - ystep
 #                 print "temp: %.2f %.2f" % (tempx, tempy)
-                if sight(person, tempx, tempy, angles, error)==True:
+                if sight(person, tempx, tempy, angles, state, error)==True:
                     points.append([tempx, tempy])
             
             if abs(ystep) > error:
                 tempx = state[0] + xstep
                 tempy = state[1] - ystep
 #                 print "temp: %.2f %.2f" % (tempx, tempy)
-                if sight(person, tempx, tempy, angles, error)==True:
+                if sight(person, tempx, tempy, angles, state, error)==True:
                     points.append([tempx, tempy])
     
     return points
 
 
 # function used to check if person1 can see person2, returns a list of reward points
-def check(person1, person2):
+
+def check(p1, p2, person1, person2):
     # check if person1 can see person2
     # return 1 if can
-    p1 = person1.state[:2] 
-    p2 = person2.state[:2]
     p3 = [p1[0]+1, p1[1]] #position along the xaxis from p2
-    direction = person1.state[2]
-    reward = []
+    direction = float(p1[2])
     
     x,y = p2[0] - p1[0], p2[1] - p1[1]
     dist = np.sqrt(x**2 + y**2)
     R = person1.params[-1]
-    if dist < R:
-        angle = angle_about_mid(p1, p2, p3)
-        if p1[0]<p2[0]:
-            # gets the right angle if greater than 90 degrees
-            angle = np.rad2deg(np.pi - angle)
-            
-        if not ccw(p1,p2,p3):
-            angle = -np.rad2deg(angle)
-        if abs(direction - angle)>person1.params[-2]:
+    if dist <= R+0.001:
+        angle = angle_about_mid(p3,p1,p2)
+        if 0.001>(p3[1] - p1[1])>(-0.001) and 0.001>(p2[1] - p1[1])>(-0.001):
+            if p3[0]>p1[0]>p2[0]:
+                angle = np.pi 
+        if round(ccw(p3,p1,p2),3) <  0:
+            direction = 360 - direction
+            if (direction - person1.params[-2]/2 - 0.001) <= np.rad2deg(angle) and (direction + person1.params[-2]/2+ 0.001) >= np.rad2deg(angle):
+                return 1 
+        if (direction - person1.params[-2]/2 - 0.001) <= np.rad2deg(angle) and (direction + person1.params[-2]/2 + 0.001) >= np.rad2deg(angle):
             return 1
     return 0
 
