@@ -33,7 +33,7 @@ public class VisualisationPanel extends JComponent {
 
 	private GameRunner gameRunner = new GameRunner();
 	private Visualiser visualiser;
-	private GameRunner.GameState currentState;
+	//private GameRunner.GameState currentState;
 
 	private AffineTransform translation = AffineTransform.getTranslateInstance(
 			0, -1);
@@ -108,7 +108,7 @@ public class VisualisationPanel extends JComponent {
 		}
 		this.frameNumber = frameNumber;
 		visualiser.setFrameNumber(frameNumber);
-		currentState = gameRunner.getStateSequence().get(frameNumber);
+		//currentState = gameRunner.getStateSequence().get(frameNumber);
 		visualiser.updateInfoText();
 		visualiser.updateTable();
 		repaint();
@@ -119,7 +119,7 @@ public class VisualisationPanel extends JComponent {
 	}
 
 	public GameRunner.GameState getCurrentState() {
-		return currentState;
+		return gameRunner.getStateSequence().get(frameNumber);//currentState;
 	}
 
 	public void playPauseAnimation() {
@@ -266,7 +266,7 @@ public class VisualisationPanel extends JComponent {
 				.getGoalRegion().getRect());
 		g2.fill(transformed);
 
-		AgentState[] states = currentState.getPlayerStates();
+		AgentState[] states = gameRunner.getStateSequence().get(frameNumber).getPlayerStates();
 		SensingParameters sp = gameRunner.getTrackerSensingParams();
 		paintState(g2, states[0], sp, Color.BLUE, new Color(0.0f, 0.0f, 1.0f,
 				0.2f));

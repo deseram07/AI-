@@ -1,5 +1,6 @@
 import numpy as np
 import math
+import sys
 from vectors import *
 
 class Tracker:
@@ -35,7 +36,9 @@ class Target:
         self.A = A  # movement type, 0 completely random, 1 modeled random
         self.actionspace = [[-1,1],[0,1],[1,1],[-1,0],[0,0],[1,0],[-1,-1],[0,-1],[1,-1]]
 
-        
+# flag for including obstacles in check function        
+ob = True
+
 def target_motion_history(file_1):
     data = open(file_1, 'r')
     lines = data.readlines()
@@ -111,13 +114,7 @@ def angle(start, middle, end):
     angle = math.degrees(math.acos(frac))
     return angle
 
-# normalise angle to 0->360 degrees
-def norm_ang(angle):
-    if angle < 0:
-        angle = 360 + angle
-    elif angle > 360:
-        angle = angle - 360
-    return angle
+
 
 # checks if cell x, y is within the tracker's sight
 def sight(tracker, x, y, angles, state, error):
@@ -205,12 +202,20 @@ def vision(person, state, type):
 
 def check(p1, p2, person1, person2):
     # check if person1 can see person2
-    # return 1 if can
+    # return 1 if can  if dist == 0:
+#        return 1
+
+    if(ob):
+        if (check_collision(person1, p1, p2)):
+            return 0
+        
     p3 = [p1[0]+1, p1[1]] #position along the xaxis from p2
     direction = float(p1[2])
     
     x,y = p2[0] - p1[0], p2[1] - p1[1]
     dist = np.sqrt(x**2 + y**2)
+    if dist < 0.001:
+        return 1
     R = person1.params[-1]
     if dist <= R+0.001:
         angle = angle_about_mid(p3,p1,p2)

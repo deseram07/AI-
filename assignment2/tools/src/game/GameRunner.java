@@ -38,6 +38,39 @@ import tracker.Tracker;
  * @author lackofcheese
  */
 public class GameRunner {
+	/** The default file to load the game setup from. */
+	private static final String DEFAULT_SETUP_FILE = "setup.txt";
+	/** The default file to output the game sequence to. */
+	private static final String DEFAULT_OUTPUT_FILE = "output.txt";
+	/** The default file for the target's divergence distribution. */
+	private static final String DEFAULT_TARGET_FILE = "prob-target.txt";
+	/** The default file for the tracker's divergence distribution. */
+	private static final String DEFAULT_TRACKER_FILE = "prob-tracker.txt";
+	/** The file containing the target's divergence distribution. */
+	private String targetDistributionFile = DEFAULT_TARGET_FILE;
+	/** The file containing the tracker's divergence distribution. */
+	private String trackerDistributionFile = DEFAULT_TRACKER_FILE;
+
+	/**
+	 * Sets the distribution file for the target's divergence.
+	 * 
+	 * @param newPath
+	 *            the new path.
+	 */
+	public void setTargetDistribution(String newPath) {
+		targetDistributionFile = newPath;
+	}
+
+	/**
+	 * Sets the distribution file for the tracker's divergence.
+	 * 
+	 * @param newPath
+	 *            the new path.
+	 */
+	public void setTrackerDistribution(String newPath) {
+		trackerDistributionFile = newPath;
+	}
+
 	private double MAX_SIGHT_DISTANCE_ERROR = 1e-5;
 	private int NUM_CAMERA_ARM_STEPS = 1000;
 
@@ -209,10 +242,10 @@ public class GameRunner {
 			}
 
 			extendedObstacles = new ArrayList<RectRegion>(obstacles);
-			extendedObstacles.add(new RectRegion(-1, 0, 1, 1));
-			extendedObstacles.add(new RectRegion(1, 0, 1, 1));
-			extendedObstacles.add(new RectRegion(0, -1, 1, 1));
-			extendedObstacles.add(new RectRegion(0, 1, 1, 1));
+			extendedObstacles.add(new RectRegion(-1, -1, 1, 3));
+			extendedObstacles.add(new RectRegion(-1, -1, 3, 1));
+			extendedObstacles.add(new RectRegion(-1, 1, 3, 1));
+			extendedObstacles.add(new RectRegion(1, -1, 1, 3));
 
 			setupLoaded = true;
 			runtimeTrackerMotionHistory = new MotionHistory();
@@ -376,7 +409,12 @@ public class GameRunner {
 				long seed = random.nextLong();
 				// System.out.println(String.format("Tracker #%d seed: %d", i,
 				// seed));
-				playerDivs[i] = new TargetDivergence(targetPolicy.getGrid());
+				try {
+					playerDivs[i] = new TargetDivergence(
+							targetPolicy.getGrid(), targetDistributionFile);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 				playerDivs[i].setSeed(seed);
 				playerScores[i] = 0;
 				playerStates[i] = targetInitialStates.get(i - 1);
@@ -386,7 +424,12 @@ public class GameRunner {
 			} else {
 				long seed = random.nextLong();
 				// System.out.println(String.format("Target seed: %d", seed));
-				playerDivs[0] = new TrackerDivergence(trackerMoveDistance);
+				try {
+					playerDivs[0] = new TrackerDivergence(trackerMoveDistance,
+							trackerDistributionFile);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 				playerDivs[0].setSeed(seed);
 			}
 			playerScores[0] = 0;
@@ -889,6 +932,125 @@ public class GameRunner {
 	}
 
 	/**
+	 * Loads a completed game from an output file.
+	 * 
+	 * @param filename
+	 *            the path to read from
+	 * @throws IOException
+	 *             if the file cannot be read.
+	 */
+	public void loadGame(String filename) throws IOException {
+		if (!setupLoaded) {
+			return;
+		}
+		actionResultSequence = new Stack<ActionResult[]>();
+		stateSequence = new Stack<GameState>();
+		stateSequence.push(new GameState());
+		cs = new GameState();
+
+		BufferedReader input = new BufferedReader(new FileReader(filename));
+		String line;
+		int lineNo = 0;
+		Scanner s;
+		try {
+			line = input.readLine();
+			lineNo++;
+			s = new Scanner(line);
+			int numTurns = s.nextInt();
+			s.close();
+
+			for (int i = 0; i < numTargets + 2; i++) {
+				// Skip the initial-state lines.
+				line = input.readLine();
+				lineNo++;
+			}
+
+			int playerNo = 0;
+			ActionResult[] results = new ActionResult[1];
+			int numLines = (numTurns / 2) * (numTargets + 1);
+			for (int i = 0; i < numLines; i++) {
+				if (i == numLines - 1) {
+					cs.gameComplete = true;
+				}
+
+				line = input.readLine();
+				lineNo++;
+				s = new Scanner(line);
+				double x = s.nextDouble();
+				double y = s.nextDouble();
+				double heading = Math.toRadians(s.nextDouble());
+				boolean hasCamera = cs.isTrackerTurn
+						&& trackerSensingParams.hasCamera();
+				double cameraArmLength = 0;
+				if (hasCamera) {
+					cameraArmLength = s.nextDouble();
+				}
+				double reward = s.nextDouble();
+				s.close();
+				Action action;
+				AgentState oldState = cs.playerStates[playerNo];
+				AgentState newState = new AgentState(new Point2D.Double(x, y),
+						heading, hasCamera, cameraArmLength);
+				cs.playerStates[playerNo] = newState;
+				if (cs.isTrackerTurn) {
+					if (!oldState.getPosition().equals(newState.getPosition())) {
+						action = new TrackerAction(oldState, heading,
+								trackerMoveDistance);
+					} else if (oldState.getHeading() != newState.getHeading()) {
+						action = new TrackerAction(oldState, heading, 0);
+					} else if (oldState.getCameraArmLength() != newState
+							.getCameraArmLength()) {
+						action = new TrackerAction(oldState,
+								newState.getCameraArmLength());
+					} else {
+						// HQ call are ignored - it won't matter in the
+						// visualiser.
+						action = new TrackerAction(oldState, false);
+					}
+				} else {
+					action = new Action(oldState, newState.getPosition());
+				}
+
+				int index = (playerNo == 0) ? 0 : playerNo - 1;
+				results[index] = new ActionResult(action, action, newState,
+						reward);
+				cs.playerScores[playerNo] += reward;
+
+				playerNo += 1;
+				if (cs.isTrackerTurn) {
+					cs.turnNo += 1;
+					stateSequence.push(cs);
+					cs = new GameState(cs);
+					cs.isTrackerTurn = false;
+					actionResultSequence.push(results);
+					results = new ActionResult[numTargets];
+				} else if (playerNo > numTargets) {
+					playerNo = 0;
+					cs.turnNo += 1;
+					stateSequence.push(cs);
+					cs = new GameState(cs);
+					cs.isTrackerTurn = true;
+					actionResultSequence.push(results);
+					results = new ActionResult[1];
+				}
+			}
+
+		} catch (InputMismatchException e) {
+			throw new IOException(String.format(
+					"Invalid number format on line %d of %s: %s", lineNo,
+					filename, e.getMessage()));
+		} catch (NoSuchElementException e) {
+			throw new IOException(String.format(
+					"Not enough tokens on line %d of %s", lineNo, filename));
+		} catch (NullPointerException e) {
+			throw new IOException(String.format(
+					"Line %d expected, but file %s ended.", lineNo, filename));
+		} finally {
+			input.close();
+		}
+	}
+
+	/**
 	 * Returns the runtime target motion history.
 	 * 
 	 * @return the runtime target motion history.
@@ -991,11 +1153,6 @@ public class GameRunner {
 		return winResult;
 	}
 
-	/** The default file to load the game setup from. */
-	private static final String DEFAULT_SETUP_FILE = "setup.txt";
-	/** The default file to output the game sequence to. */
-	private static final String DEFAULT_OUTPUT_FILE = "output.txt";
-
 	/**
 	 * Runs a game, with the problem setup file passed from the command line.
 	 * 
@@ -1003,20 +1160,42 @@ public class GameRunner {
 	 *            command line arguments; the first should be the setup file.
 	 */
 	public static void main(String[] args) {
-		String setupFile;
-		String outputFile;
-		if (args.length >= 1) {
-			setupFile = args[0];
-			if (args.length >= 2) {
-				outputFile = args[1];
+		String setupFile = null;
+		String outputFile = null;
+		String targetFile = null;
+		String trackerFile = null;
+		for (int i = 0; i < args.length; i++) {
+			String arg = args[i].trim();
+			if (arg.equals("-o")) {
+				i++;
+				if (i < args.length) {
+					outputFile = args[i].trim();
+				}
 			} else {
-				outputFile = DEFAULT_OUTPUT_FILE;
+				if (setupFile == null) {
+					setupFile = arg;
+				} else if (targetFile == null) {
+					targetFile = arg;
+				} else if (trackerFile == null) {
+					trackerFile = arg;
+				}
 			}
-		} else {
+		}
+		if (setupFile == null) {
 			setupFile = DEFAULT_SETUP_FILE;
+		}
+		if (outputFile == null) {
 			outputFile = DEFAULT_OUTPUT_FILE;
 		}
+		if (targetFile == null) {
+			targetFile = DEFAULT_TARGET_FILE;
+		}
+		if (trackerFile == null) {
+			trackerFile = DEFAULT_TRACKER_FILE;
+		}
 		GameRunner runner = new GameRunner();
+		runner.setTargetDistribution(targetFile);
+		runner.setTrackerDistribution(trackerFile);
 		long globalSeed = new Random().nextLong();
 		System.out.println("Global seed: " + globalSeed);
 		runner.setSeed(globalSeed);
@@ -1038,13 +1217,12 @@ public class GameRunner {
 		}
 		System.out.println(String.format("Tracker won %d of %d games.",
 				numWins, numGames));
-		try {
-			runner.getRuntimeTargetMotionHistory().writeToFile(
-					"targetMotionHistory.txt");
-			runner.getRuntimeTrackerMotionHistory().writeToFile(
-					"trackerMotionHistory.txt");
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		/*
+		 * try { runner.getRuntimeTargetMotionHistory().writeToFile(
+		 * "targetMotionHistory.txt");
+		 * runner.getRuntimeTrackerMotionHistory().writeToFile(
+		 * "trackerMotionHistory.txt"); } catch (IOException e) {
+		 * e.printStackTrace(); }
+		 */
 	}
 }

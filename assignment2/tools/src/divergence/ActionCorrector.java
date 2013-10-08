@@ -26,6 +26,7 @@ public class ActionCorrector extends ActionDivergence {
 	 *            the sensing parameters of the tracker.
 	 */
 	public ActionCorrector(double stepDistance, SensingParameters sp) {
+		this.sp = sp;
 		this.stepDistance = stepDistance;
 	}
 

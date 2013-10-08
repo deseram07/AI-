@@ -29,23 +29,27 @@ all of its subfolders.
 
 (1) Commands and arguments
 The runnable files and their arguments are:
-	game.GameRunner [setup-file] [output-file]
-    visualiser.Visualiser [setup-file]
+    game.GameRunner [setup-file] [target-distribution-file] [tracker-distribution-file] [-o output-file]
+    visualiser.Visualiser [setup-file] [target-distribution-file] [tracker-distribution-file]
+
+If you compile all the code into "bin" in the project folder (as Eclipse does by
+default), the following command-line commands should work:
+    java -cp bin game.GameRunner [setup-file] [target-distribution-file] [tracker-distribution-file] [-o output-file]
+    java -cp bin visualiser.Visualiser [setup-file] [target-distribution-file] [tracker-distribution-file]
+
+NOTE: If any of these arguments aren't given, the default values are as follows:
+setup-file = setup.txt
+target-distribution-file = prob-target.txt
+tracker-distribution-file =  prob-tracker.txt
+output-file = output.txt
+
+The commands above may require full paths to Java; see section (4).
 
 
 (2) Running the Visualiser
-To run it, simply run visualiser.jar with Java 7 (double-clicking should work
-if Java is installed properly). If this doesn't work or you want to run it
-with a different version, I recommend using Eclipse - simply add the contents
-of a2-tools.zip to a new project.
-Alternatively, see the manual compilation instructions in section (3).
-
-You can also run it from the command line with optional
-command-line arguments:
-    java -jar visualiser.jar [setup-file]
-
-Note that these commands may require you to use full path to java.exe,
-as per section (4).
+Run the visualiser from Eclipse or from the command line; the JAR has been removed
+since it won't work properly if you change the Tracker code unless you
+manually recompile the JAR.
 
 
 (3) Manual Compilation
@@ -55,13 +59,6 @@ following:
 2) Extract a2-tools.zip to the desired folder.
 3) From within that folder, run the command
     ant
-
-The following commands should now work for running the game from command line
-and using the visualiser:
-	java -cp bin game.GameRunner [setup-file] [output-file]
-    java -cp bin visualiser.Visualiser [setup-file]
-
-The commands above may require full paths to Java; see section (4).
 
 
 (4) The command line and the system path

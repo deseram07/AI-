@@ -54,7 +54,7 @@ public class Visualiser {
 
 	private JMenuBar menuBar;
 	private JMenu fileMenu;
-	private JMenuItem loadSetupItem, writeOutputItem, exitItem;
+	private JMenuItem loadSetupItem, loadOutputItem, writeOutputItem, exitItem;
 	private JMenu gameMenu;
 	private JMenuItem playPauseItem, resetItem, backItem, forwardItem,
 			stepItem;
@@ -96,6 +96,8 @@ public class Visualiser {
 			String cmd = e.getActionCommand();
 			if (cmd.equals("Load setup")) {
 				loadSetup();
+			} else if (cmd.equals("Load output")) {
+				loadOutput();
 			} else if (cmd.equals("Write output")) {
 				writeOutput();
 			} else if (cmd.equals("Play")) {
@@ -332,6 +334,11 @@ public class Visualiser {
 		loadSetupItem.addActionListener(menuListener);
 		fileMenu.add(loadSetupItem);
 
+		loadOutputItem = new JMenuItem("Load output");
+		loadOutputItem.setMnemonic(KeyEvent.VK_O);
+		loadOutputItem.addActionListener(menuListener);
+		fileMenu.add(loadOutputItem);
+
 		writeOutputItem = new JMenuItem("Write output");
 		writeOutputItem.setMnemonic(KeyEvent.VK_W);
 		writeOutputItem.addActionListener(menuListener);
@@ -488,6 +495,24 @@ public class Visualiser {
 		loadSetup(f);
 	}
 
+	private void loadOutput(File f) {
+		try {
+			gameRunner.loadGame(f.getPath());
+			updateMaximum();
+			vp.gotoFrame(0);
+		} catch (IOException e) {
+			showFileError(f);
+		}
+	}
+
+	private void loadOutput() {
+		File f = askForFile();
+		if (f == null) {
+			return;
+		}
+		loadOutput(f);
+	}
+
 	private void writeOutput(File f) {
 		try {
 			gameRunner.writeResults(f.getPath());
@@ -558,12 +583,12 @@ public class Visualiser {
 		GameState state = vp.getCurrentState();
 		if (state.isGameComplete()) {
 			infoLabel.setText("Game complete! " + state.getResultString());
-//			gameRunner.resetHistory();
-//			gameRunner.saveHistory();
-//			System.out.println("Tracker motion history:");
-//			System.out.println(gameRunner.getRuntimeTrackerMotionHistory());
-//			System.out.println("Target motion history:");
-//			System.out.println(gameRunner.getRuntimeTargetMotionHistory());
+			// gameRunner.resetHistory();
+			// gameRunner.saveHistory();
+			// System.out.println("Tracker motion history:");
+			// System.out.println(gameRunner.getRuntimeTrackerMotionHistory());
+			// System.out.println("Target motion history:");
+			// System.out.println(gameRunner.getRuntimeTargetMotionHistory());
 		} else if (state.isTrackerTurn()) {
 			infoLabel.setText("Tracker to act.");
 		} else {
@@ -627,9 +652,29 @@ public class Visualiser {
 	public static void main(String[] args) {
 		JFrame frame = new JFrame("Assignment 1 visualiser");
 		Visualiser vis = new Visualiser(frame);
-		if (args.length > 0) {
-			vis.loadSetup(new File(args[0]));
+		String setupFile = null;
+		String targetFile = null;
+		String trackerFile = null;
+		for (int i = 0; i < args.length; i++) {
+			String arg = args[i].trim();
+			if (setupFile == null) {
+				setupFile = arg;
+			} else if (targetFile == null) {
+				targetFile = arg;
+			} else if (trackerFile == null) {
+				trackerFile = arg;
+			}
 		}
+		if (targetFile != null) {
+			vis.gameRunner.setTargetDistribution(targetFile);
+		}
+		if (trackerFile != null) {
+			vis.gameRunner.setTrackerDistribution(trackerFile);
+		}
+		if (setupFile != null) {
+			vis.loadSetup(new File(setupFile));
+		}
+
 		frame.setSize(800, 1000);
 		frame.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
